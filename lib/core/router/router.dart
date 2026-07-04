@@ -26,8 +26,12 @@ CustomTransitionPage _fadePage(GoRouterState s, Widget child,
         // "Being covered by a push": every page reacts the same way —
         // drift left and fade across the full push duration, in sync with
         // the incoming right-to-left slide.
+        // reverseCurve delays the parent's reveal on pop: it stays hidden
+        // for the first ~35% while the popped page is still sliding away.
         final secondaryCurved = CurvedAnimation(
-            parent: secondaryAnimation, curve: Curves.easeInOutCubic);
+            parent: secondaryAnimation,
+            curve: Curves.easeInOutCubic,
+            reverseCurve: const Interval(0, .65, curve: Curves.easeOut));
         Widget covered(Widget w) => SlideTransition(
               position: Tween(begin: Offset.zero, end: const Offset(-.3, 0))
                   .animate(secondaryCurved),
