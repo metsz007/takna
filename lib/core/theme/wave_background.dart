@@ -49,6 +49,16 @@ class WaveBackground extends StatefulWidget {
 
 class _WaveBackgroundState extends State<WaveBackground>
     with SingleTickerProviderStateMixin {
+  // One shared clock for every instance: the phase is derived from elapsed
+  // app time, so waves are in the same position on every screen and never
+  // reset on navigation.
+  static final Stopwatch _clock = Stopwatch()..start();
+
+  double get _phase =>
+      (_clock.elapsedMilliseconds / widget.duration.inMilliseconds) *
+      2 *
+      math.pi;
+
   late final AnimationController _controller;
 
   @override
@@ -84,9 +94,11 @@ class _WaveBackgroundState extends State<WaveBackground>
         AnimatedBuilder(
           animation: _controller,
           builder: (context, _) {
+            // The controller is only a repaint ticker; the actual phase
+            // comes from the shared clock (continuous across screens).
             return CustomPaint(
               painter: _WavePainter(
-                t: _controller.value * 2 * math.pi,
+                t: _phase,
                 dark: widget.dark,
               ),
               isComplex: true,

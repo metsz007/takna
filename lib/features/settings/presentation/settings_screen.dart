@@ -4,7 +4,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/theme/theme.dart';
-import '../../../core/theme/wave_background.dart';
 import '../../../core/theme/widgets.dart';
 import '../../reminders/presentation/providers.dart';
 
@@ -40,12 +39,9 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
     final prefs = _prefs;
     final themeMode = ref.watch(themeModeProvider);
     return Scaffold(
-      body: WaveBackground(
-        animate: true,
-        dark: Theme.of(context).brightness == Brightness.dark,
-        child: SafeArea(
-          bottom: false,
-          child: prefs == null
+      body: SafeArea(
+        bottom: false,
+        child: prefs == null
             ? const Center(child: CircularProgressIndicator())
             : ListView(
                 padding: const EdgeInsets.only(bottom: 30),
@@ -183,7 +179,6 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
                   ),
                 ],
               ),
-        ),
       ),
     );
   }

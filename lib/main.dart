@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/router/router.dart';
 import 'core/theme/theme.dart';
+import 'core/theme/wave_background.dart';
 import 'features/reminders/presentation/providers.dart';
 
 Future<void> main() async {
@@ -53,5 +54,12 @@ class TaknaApp extends ConsumerWidget {
         themeMode: ref.watch(themeModeProvider),
         routerConfig: router,
         debugShowCheckedModeBanner: false,
+        // One wave background behind the whole navigator — screens are
+        // transparent layers over it, so it never resets or re-mounts.
+        builder: (context, child) => WaveBackground(
+          animate: true,
+          dark: Theme.of(context).brightness == Brightness.dark,
+          child: child,
+        ),
       );
 }

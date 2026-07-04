@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/theme.dart';
-import '../../../../core/theme/wave_background.dart';
 import '../../../../core/theme/widgets.dart';
 import '../../domain/recurrence.dart';
 import '../providers.dart';
@@ -25,11 +24,8 @@ class ReminderDetailScreen extends ConsumerWidget {
     final t = context.tk;
     final reminder = ref.watch(reminderByIdProvider(reminderId));
     return Scaffold(
-      body: WaveBackground(
-        animate: false,
-        dark: Theme.of(context).brightness == Brightness.dark,
-        child: SafeArea(
-          child: reminder.when(
+      body: SafeArea(
+        child: reminder.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('$e')),
           data: (r) {
@@ -196,7 +192,6 @@ class ReminderDetailScreen extends ConsumerWidget {
               ],
             );
           },
-          ),
         ),
       ),
     );

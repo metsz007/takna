@@ -114,7 +114,9 @@ ThemeData themeFor(Brightness b) {
   final t = b == Brightness.light ? Tk.light : Tk.dark;
   return ThemeData(
     brightness: b,
-    scaffoldBackgroundColor: t.bg,
+    // Transparent: the app-level WaveBackground (MaterialApp.builder) is the
+    // real background behind every screen.
+    scaffoldBackgroundColor: Colors.transparent,
     colorScheme: ColorScheme.fromSeed(
         seedColor: t.ink, brightness: b, primary: t.accent, surface: t.bg),
     textTheme: GoogleFonts.figtreeTextTheme(

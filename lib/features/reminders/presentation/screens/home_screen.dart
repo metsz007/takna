@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/database/database.dart';
 import '../../../../core/theme/theme.dart';
-import '../../../../core/theme/wave_background.dart';
 import '../../../../core/theme/widgets.dart';
 import '../../domain/recurrence.dart';
 import '../providers.dart';
@@ -34,16 +33,12 @@ class HomeScreen extends ConsumerWidget {
     final t = context.tk;
     final reminders = ref.watch(remindersStreamProvider);
     return Scaffold(
-      body: WaveBackground(
-        animate: true,
-        dark: Theme.of(context).brightness == Brightness.dark,
-        child: SafeArea(
-          bottom: false,
-          child: reminders.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('$e')),
-            data: (list) => list.isEmpty ? const _EmptyState() : _HomeList(list),
-          ),
+      body: SafeArea(
+        bottom: false,
+        child: reminders.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('$e')),
+          data: (list) => list.isEmpty ? const _EmptyState() : _HomeList(list),
         ),
       ),
       floatingActionButton: Padding(
