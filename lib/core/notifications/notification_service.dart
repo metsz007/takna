@@ -1,0 +1,138 @@
+import 'dart:typed_data';
+
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
+
+const snoozeActionId = 'snooze';
+const dismissActionId = 'dismiss';
+
+// Real-alarm behavior: rings on the ALARM audio stream, repeats until
+// dismissed (FLAG_INSISTENT), and pops full-screen over the lock screen.
+// New channel id — channel settings are immutable once created.
+final _channel = AndroidNotificationDetails(
+  'takna_alarms',
+  'Alarms',
+  channelDescription: 'Reminder alarms that ring until dismissed',
+  importance: Importance.max,
+  priority: Priority.max,
+  category: AndroidNotificationCategory.alarm,
+  audioAttributesUsage: AudioAttributesUsage.alarm,
+  fullScreenIntent: true,
+  additionalFlags: Int32List.fromList([4]), // FLAG_INSISTENT: loops until dismissed
+  actions: const [
+    AndroidNotificationAction(snoozeActionId, 'Snooze', cancelNotification: true),
+    AndroidNotificationAction(dismissActionId, 'Dismiss', cancelNotification: true),
+  ],
+);
+
+/// Payload format: "notificationId|snoozeMinutes|title".
+({int id, int snoozeMinutes, String title}) parsePayload(String? payload) {
+  final parts = (payload ?? '').split('|');
+  return (
+    id: parts.isNotEmpty ? int.tryParse(parts[0]) ?? 0 : 0,
+    snoozeMinutes: parts.length > 1 ? int.tryParse(parts[1]) ?? 10 : 10,
+    title: parts.length > 2 ? parts.sublist(2).join('|') : 'Reminder',
+  );
+}
+
+/// Handles Snooze taps while the app is dead. Runs in a background isolate,
+/// so it bootstraps its own plugin instance.
+@pragma('vm:entry-point')
+void notificationBackgroundHandler(NotificationResponse response) async {
+  if (response.actionId != snoozeActionId) return;
+  final p = parsePayload(response.payload);
+  final service = NotificationService();
+  await service.init(handleForeground: false);
+  await service.scheduleSnooze(p.title, p.snoozeMinutes);
+}
+
+class NotificationService {
+  final _plugin = FlutterLocalNotificationsPlugin();
+  void Function(NotificationResponse)? onForegroundResponse;
+
+  Future<void> init({bool handleForeground = true}) async {
+    tzdata.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation(await _localTimeZoneName()));
+    await _plugin.initialize(
+      settings: const InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(),
+      ),
+      onDidReceiveNotificationResponse:
+          handleForeground ? (r) => onForegroundResponse?.call(r) : null,
+      onDidReceiveBackgroundNotificationResponse: notificationBackgroundHandler,
+    );
+  }
+
+  Future<String> _localTimeZoneName() async {
+    // ponytail: DateTime.now().timeZoneName gives abbreviations, not IANA ids;
+    // tz.local defaults to UTC otherwise. Use offset match as pragmatic v1
+    // fallback; swap in flutter_timezone package if this misfires for users.
+    try {
+      final offset = DateTime.now().timeZoneOffset;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      for (final name in tz.timeZoneDatabase.locations.keys) {
+        final loc = tz.getLocation(name);
+        if (loc.timeZone(now).offset == offset) {
+          return name;
+        }
+      }
+    } catch (_) {}
+    return 'UTC';
+  }
+
+  Future<void> requestPermissions() async {
+    await _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+    await _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestExactAlarmsPermission();
+    await _plugin
+        .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
+  }
+
+  Future<void> cancelAll() => _plugin.cancelAll();
+  Future<void> cancel(int id) => _plugin.cancel(id: id);
+
+  /// Payload if the app was launched by tapping / full-screening a
+  /// notification, else null.
+  Future<String?> launchPayload() async {
+    final details = await _plugin.getNotificationAppLaunchDetails();
+    if (details?.didNotificationLaunchApp != true) return null;
+    final response = details!.notificationResponse;
+    if (response?.actionId != null) return null; // action buttons handled elsewhere
+    return response?.payload;
+  }
+
+  Future<void> schedule({
+    required int id,
+    required String title,
+    String? body,
+    required DateTime when,
+    required int snoozeMinutes,
+  }) =>
+      _plugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: tz.TZDateTime.from(when, tz.local),
+        notificationDetails: NotificationDetails(
+          android: _channel,
+          iOS: const DarwinNotificationDetails(
+              interruptionLevel: InterruptionLevel.timeSensitive),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        payload: '$id|$snoozeMinutes|$title',
+      );
+
+  Future<void> scheduleSnooze(String title, int minutes) => schedule(
+        id: DateTime.now().millisecondsSinceEpoch & 0x7fffffff,
+        title: title,
+        body: 'Snoozed reminder',
+        when: DateTime.now().add(Duration(minutes: minutes)),
+        snoozeMinutes: minutes,
+      );
+}

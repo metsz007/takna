@@ -1,0 +1,45 @@
+import 'package:rrule/rrule.dart';
+
+import '../../../core/database/database.dart';
+
+/// Expands a reminder into its next [count] occurrence times (local wall
+/// time), starting strictly after [after]. One-time reminders yield their
+/// startDateTime if it's still in the future.
+///
+/// The rrule package computes in UTC, so we feed it wall-clock components
+/// stamped as UTC and strip the flag on the way out. DST-safe for wall-time
+/// semantics ("every day at 9:00").
+List<DateTime> nextOccurrences(Reminder r, DateTime after, int count) {
+  if (r.rruleString == null) {
+    return r.startDateTime.isAfter(after) ? [r.startDateTime] : [];
+  }
+  final rule = RecurrenceRule.fromString(
+      r.rruleString!.startsWith('RRULE:') ? r.rruleString! : 'RRULE:${r.rruleString!}');
+  final s = r.startDateTime;
+  final startUtc = DateTime.utc(s.year, s.month, s.day, s.hour, s.minute);
+  final a = after;
+  final afterUtc = DateTime.utc(a.year, a.month, a.day, a.hour, a.minute, a.second);
+  return rule
+      .getInstances(start: startUtc, after: afterUtc)
+      .take(count)
+      .map((d) => DateTime(d.year, d.month, d.day, d.hour, d.minute))
+      .toList();
+}
+
+/// Friendly label for the repeat badge ("Daily", "Weekly", ...).
+String recurrenceLabel(String? rruleString) {
+  if (rruleString == null) return 'Once';
+  final s = rruleString.toUpperCase();
+  final hasInterval = RegExp(r'INTERVAL=([2-9]|\d\d+)').hasMatch(s);
+  if (s.contains('FREQ=DAILY')) return hasInterval ? 'Custom' : 'Daily';
+  if (s.contains('FREQ=WEEKLY')) {
+    if (hasInterval) return 'Custom';
+    final byday = RegExp(r'BYDAY=([A-Z,]+)').firstMatch(s)?.group(1);
+    if (byday == 'MO,TU,WE,TH,FR') return 'Weekdays';
+    if (byday != null && byday.split(',').length > 1) return 'Custom';
+    return 'Weekly';
+  }
+  if (s.contains('FREQ=MONTHLY')) return hasInterval ? 'Custom' : 'Monthly';
+  if (s.contains('FREQ=YEARLY')) return hasInterval ? 'Custom' : 'Yearly';
+  return 'Custom';
+}

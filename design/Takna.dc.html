@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&family=Figtree:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+[data-theme="light"]{
+--bg:#F2EBDA;--surface:#FCFAF3;--surface-2:#EFE7D6;
+--ink:#173B44;--ink-2:rgba(23,59,68,.62);--ink-3:rgba(23,59,68,.42);
+--line:rgba(23,59,68,.08);--line-2:rgba(23,59,68,.14);
+--accent:#E0A43B;--accent-soft:#F6E7C6;--accent-ink:#8A6A1F;--on-accent:#173B44;
+--hero-bg:#173B44;--hero-ink:#F2EBDA;--hero-sub:rgba(242,235,218,.78);
+--nav-bg:#FCFAF3;--nav-line:rgba(23,59,68,.07);
+--ic-1:#173B44;--ic-2:#E0A43B;
+--font-body:'Figtree';--font-display:'Space Grotesk';
+--toggle-off:#D8D2C4;--toggle-knob:#fff;--field:#F3ECDD;--scrim:rgba(23,59,68,.34);
+--ok:#3E8E6E;--ok-soft:rgba(62,142,110,.14);
+}
+[data-theme="dark"]{
+--bg:#0E272E;--surface:#17363D;--surface-2:#1C454F;
+--ink:#F2EBDA;--ink-2:rgba(242,235,218,.6);--ink-3:rgba(242,235,218,.4);
+--line:rgba(242,235,218,.07);--line-2:rgba(242,235,218,.12);
+--accent:#E0A43B;--accent-soft:rgba(224,164,59,.16);--accent-ink:#E0A43B;--on-accent:#173B44;
+--hero-bg:linear-gradient(150deg,#1C454F,#173B44);--hero-ink:#F2EBDA;--hero-sub:rgba(242,235,218,.7);
+--nav-bg:#0B1E24;--nav-line:rgba(242,235,218,.07);
+--ic-1:#E0A43B;--ic-2:#F2EBDA;
+--font-body:'Figtree';--font-display:'Space Grotesk';
+--toggle-off:rgba(242,235,218,.16);--toggle-knob:#F2EBDA;--field:#123138;--scrim:rgba(0,0,0,.55);
+--ok:#57C79A;--ok-soft:rgba(87,199,154,.16);
+}
+.tk-scroll{scrollbar-width:none}
+.tk-scroll::-webkit-scrollbar{width:0;height:0;display:none}
+@keyframes tk-slide{from{transform:translateY(101%)}to{transform:translateY(0)}}
+@keyframes tk-fade{from{opacity:0}to{opacity:1}}
+</style>
+</helmet>
+
+<div data-theme="{{ themeAttr }}" style="min-height:100vh;background:#E7E2D7;display:flex;flex-direction:column;align-items:center;padding:26px 16px 44px;box-sizing:border-box;font-family:'Plus Jakarta Sans',system-ui,sans-serif">
+
+<!-- ===== control bar ===== -->
+<div style="width:100%;max-width:660px;display:flex;flex-direction:column;gap:15px;margin-bottom:22px">
+<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+<div style="display:flex;align-items:center;gap:11px">
+<div style="width:38px;height:38px;border-radius:11px;background:#173B44;display:flex;align-items:center;justify-content:center"><div style="width:16px;height:16px;border:2.4px solid #E0A43B;border-radius:50%;position:relative"><div style="position:absolute;top:1px;left:5.6px;width:2.4px;height:6px;background:#E0A43B;border-radius:2px"></div></div></div>
+<div><div style="font:800 20px 'Plus Jakarta Sans';color:#173B44;letter-spacing:-.3px">Takna</div><div style="font:500 11px 'Plus Jakarta Sans';color:rgba(23,59,68,.5);margin-top:-1px">time, kept &mdash; alarms you can trust</div></div>
+</div>
+<div style="display:flex;gap:9px;flex-wrap:wrap">
+<div style="display:flex;background:#fff;border:1px solid rgba(23,59,68,.12);border-radius:12px;padding:3px;gap:2px">
+<sc-for list="{{ platformSeg }}" as="opt" hint-placeholder-count="2"><div onClick="{{ opt.onTap }}" style="padding:7px 14px;border-radius:9px;font:600 12px 'Plus Jakarta Sans';cursor:pointer;white-space:nowrap;background:{{ opt.bg }};color:{{ opt.fg }}">{{ opt.label }}</div></sc-for>
+</div>
+<div style="display:flex;background:#fff;border:1px solid rgba(23,59,68,.12);border-radius:12px;padding:3px;gap:2px">
+<sc-for list="{{ themeSeg }}" as="opt" hint-placeholder-count="2"><div onClick="{{ opt.onTap }}" style="padding:7px 14px;border-radius:9px;font:600 12px 'Plus Jakarta Sans';cursor:pointer;white-space:nowrap;background:{{ opt.bg }};color:{{ opt.fg }}">{{ opt.label }}</div></sc-for>
+</div>
+</div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<sc-for list="{{ navChips }}" as="opt" hint-placeholder-count="6"><div onClick="{{ opt.onTap }}" style="padding:6px 13px;border-radius:20px;font:600 11.5px 'Plus Jakarta Sans';cursor:pointer;white-space:nowrap;background:{{ opt.bg }};color:{{ opt.fg }};border:1px solid {{ opt.border }}">{{ opt.label }}</div></sc-for>
+</div>
+</div>
+
+<!-- ===== phone ===== -->
+<div style="width:344px;border-radius:48px;padding:12px;background:#0C1417;box-shadow:0 30px 70px -20px rgba(23,59,68,.55),0 6px 18px rgba(0,0,0,.22)">
+<div class="tk-scroll" style="border-radius:37px;overflow:hidden;height:748px;position:relative;display:flex;flex-direction:column;background:var(--bg);font-family:var(--font-body)">
+
+<!-- notch / punch-hole -->
+<sc-if value="{{ isIOS }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;top:11px;left:50%;transform:translateX(-50%);width:116px;height:29px;background:#0C1417;border-radius:16px;z-index:40"></div></sc-if>
+<sc-if value="{{ isAndroid }}"><div style="position:absolute;top:15px;left:50%;transform:translateX(-50%);width:11px;height:11px;background:#0C1417;border-radius:50%;z-index:40"></div></sc-if>
+
+<!-- status bar -->
+<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 24px 2px;font:600 13px var(--font-body);color:var(--ink);flex:none;z-index:5">
+<span>6:46</span>
+<div style="display:flex;gap:6px;align-items:center">
+<svg width="17" height="11" viewBox="0 0 18 12" fill="none"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2" width="3" height="10" rx="1" fill="currentColor" opacity=".5"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor" opacity=".3"/></svg>
+<svg width="16" height="11" viewBox="0 0 24 18" fill="none"><path d="M12 15.5a2 2 0 1 0 0-.01M4 8.5a11 11 0 0 1 16 0M8 12a6 6 0 0 1 8 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+<div style="display:flex;align-items:center;gap:2px"><div style="width:20px;height:11px;border:1.4px solid currentColor;border-radius:3px;padding:1.5px;box-sizing:border-box"><div style="width:70%;height:100%;background:currentColor;border-radius:1px"></div></div><div style="width:1.6px;height:4px;background:currentColor;border-radius:1px"></div></div>
+</div>
+</div>
+
+<!-- ============ scrollable content ============ -->
+<div class="tk-scroll" style="flex:1;overflow-y:auto;position:relative">
+
+<!-- ---- HOME ---- -->
+<sc-if value="{{ showHome }}" hint-placeholder-val="{{ true }}">
+<div style="padding:6px 0 132px">
+<div style="padding:10px 22px 0;display:flex;justify-content:space-between;align-items:flex-start">
+<div><div style="font:600 12.5px var(--font-body);color:var(--ink-2)">{{ todayLabel }}</div><div style="font:800 25px/1.1 var(--font-body);color:var(--ink);margin-top:3px">{{ greeting }}</div></div>
+<div style="width:40px;height:40px;border-radius:50%;background:var(--hero-bg);display:flex;align-items:center;justify-content:center;font:700 14px var(--font-body);color:var(--hero-ink)">A</div>
+</div>
+
+<div style="margin:16px 20px 0;background:var(--hero-bg);border-radius:26px;padding:20px 20px 17px;box-shadow:0 16px 34px -12px rgba(23,59,68,.45);position:relative;overflow:hidden;border:1px solid rgba(224,164,59,.18)">
+<div style="position:absolute;right:-34px;top:-42px;width:145px;height:145px;border-radius:50%;background:radial-gradient(circle,rgba(224,164,59,.30),transparent 70%)"></div>
+<div style="display:flex;justify-content:space-between;align-items:center;position:relative">
+<span style="font:700 10px var(--font-body);letter-spacing:1.5px;color:#E0A43B">NEXT REMINDER</span>
+<span style="font:700 10px var(--font-body);color:#173B44;background:#E0A43B;padding:4px 9px;border-radius:20px">{{ heroBadge }}</span>
+</div>
+<div style="font:700 19px var(--font-body);color:var(--hero-ink);margin-top:13px;position:relative">{{ heroTitle }}</div>
+<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-top:5px;position:relative">
+<div style="display:flex;align-items:baseline;gap:5px"><span style="font:700 42px/1 var(--font-display);color:#fff;letter-spacing:-1px">{{ heroTimeMain }}</span><span style="font:600 15px var(--font-display);color:var(--hero-sub)">{{ heroTimeSuffix }}</span></div>
+<span style="font:700 12px var(--font-body);color:#173B44;background:#E0A43B;padding:6px 11px;border-radius:20px">{{ heroCountdown }}</span>
+</div>
+<div style="display:flex;align-items:center;gap:6px;margin-top:14px;position:relative"><div style="width:6px;height:6px;border-radius:50%;background:#E0A43B;box-shadow:0 0 0 3px rgba(224,164,59,.22)"></div><span style="font:500 11px var(--font-body);color:var(--hero-sub)">Alarm set &middot; notifies even when your phone is locked</span></div>
+</div>
+
+<div style="display:flex;align-items:center;justify-content:space-between;padding:22px 24px 11px">
+<span style="font:700 13px var(--font-body);color:var(--ink)">Today</span><span style="font:600 12px var(--font-body);color:var(--ink-3)">{{ todayCount }}</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:11px;padding:0 20px">
+<sc-for list="{{ today }}" as="item" hint-placeholder-count="2">
+<div onClick="{{ item.onOpen }}" style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px 13px;box-shadow:0 3px 10px rgba(23,59,68,.05);cursor:pointer">
+<div style="width:38px;height:38px;border-radius:12px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none">{{ item.iconEl }}</div>
+<div style="flex:1;min-width:0"><div style="font:600 14px var(--font-body);color:var(--ink)">{{ item.title }}</div><div style="display:flex;align-items:center;gap:7px;margin-top:3px"><span style="font:600 12px var(--font-display);color:var(--ink-2)">{{ item.when }}</span><span style="font:600 9.5px var(--font-body);color:var(--accent-ink);background:var(--accent-soft);padding:3px 7px;border-radius:6px">{{ item.badge }}</span></div></div>
+<sc-if value="{{ item.toggleOn }}" hint-placeholder-val="{{ true }}"><div onClick="{{ item.onToggle }}" style="width:42px;height:25px;border-radius:20px;background:var(--accent);position:relative;flex:none;cursor:pointer"><div style="position:absolute;top:2.5px;left:19.5px;width:20px;height:20px;border-radius:50%;background:var(--toggle-knob);box-shadow:0 1px 3px rgba(0,0,0,.25)"></div></div></sc-if>
+<sc-if value="{{ item.toggleOff }}"><div onClick="{{ item.onToggle }}" style="width:42px;height:25px;border-radius:20px;background:var(--toggle-off);position:relative;flex:none;cursor:pointer"><div style="position:absolute;top:2.5px;left:2.5px;width:20px;height:20px;border-radius:50%;background:var(--toggle-knob);box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></sc-if>
+</div>
+</sc-for>
+</div>
+
+<div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 11px">
+<span style="font:700 13px var(--font-body);color:var(--ink)">Upcoming</span><span style="font:600 12px var(--font-body);color:var(--ink-3)">{{ upcomingCount }}</span>
+</div>
+<div style="display:flex;flex-direction:column;gap:11px;padding:0 20px">
+<sc-for list="{{ upcoming }}" as="item" hint-placeholder-count="2">
+<div onClick="{{ item.onOpen }}" style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px 13px;box-shadow:0 3px 10px rgba(23,59,68,.05);cursor:pointer">
+<div style="width:38px;height:38px;border-radius:12px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none">{{ item.iconEl }}</div>
+<div style="flex:1;min-width:0"><div style="font:600 14px var(--font-body);color:var(--ink)">{{ item.title }}</div><div style="display:flex;align-items:center;gap:7px;margin-top:3px"><span style="font:600 12px var(--font-display);color:var(--ink-2)">{{ item.when }}</span><span style="font:600 9.5px var(--font-body);color:var(--accent-ink);background:var(--accent-soft);padding:3px 7px;border-radius:6px">{{ item.badge }}</span></div></div>
+<sc-if value="{{ item.toggleOn }}" hint-placeholder-val="{{ true }}"><div onClick="{{ item.onToggle }}" style="width:42px;height:25px;border-radius:20px;background:var(--accent);position:relative;flex:none;cursor:pointer"><div style="position:absolute;top:2.5px;left:19.5px;width:20px;height:20px;border-radius:50%;background:var(--toggle-knob);box-shadow:0 1px 3px rgba(0,0,0,.25)"></div></div></sc-if>
+<sc-if value="{{ item.toggleOff }}"><div onClick="{{ item.onToggle }}" style="width:42px;height:25px;border-radius:20px;background:var(--toggle-off);position:relative;flex:none;cursor:pointer"><div style="position:absolute;top:2.5px;left:2.5px;width:20px;height:20px;border-radius:50%;background:var(--toggle-knob);box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div></sc-if>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<!-- ---- EMPTY ---- -->
+<sc-if value="{{ showEmpty }}">
+<div style="padding:10px 22px 132px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font:600 12.5px var(--font-body);color:var(--ink-2)">{{ todayLabel }}</div><div style="font:800 25px/1.1 var(--font-body);color:var(--ink);margin-top:3px">{{ greeting }}</div></div><div style="width:40px;height:40px;border-radius:50%;background:var(--hero-bg);display:flex;align-items:center;justify-content:center;font:700 14px var(--font-body);color:var(--hero-ink)">A</div></div>
+<div style="display:flex;flex-direction:column;align-items:center;text-align:center;margin-top:96px;padding:0 14px">
+<div style="width:104px;height:104px;border-radius:50%;background:var(--accent-soft);display:flex;align-items:center;justify-content:center"><svg width="46" height="46" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--ic-1)" stroke-width="1.8"/><path d="M12 7.5V12l3 1.8" stroke="var(--ic-2)" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+<div style="font:700 20px var(--font-body);color:var(--ink);margin-top:26px">No reminders yet</div>
+<div style="font:400 13.5px/1.55 var(--font-body);color:var(--ink-2);margin-top:9px;max-width:230px">Add your first reminder and Takna will make sure it wakes you &mdash; on time, every time.</div>
+<div onClick="{{ onFab }}" style="margin-top:24px;background:var(--accent);color:var(--on-accent);font:700 14px var(--font-body);padding:14px 26px;border-radius:16px;cursor:pointer;box-shadow:0 10px 22px -6px rgba(224,164,59,.6)">Add a reminder</div>
+</div>
+</div>
+</sc-if>
+
+<!-- ---- ADD / EDIT ---- -->
+<sc-if value="{{ showAdd }}">
+<div style="padding:2px 0 40px">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 18px 8px">
+<div onClick="{{ goHome }}" style="width:38px;height:38px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"/></svg></div>
+<div style="font:700 15px var(--font-body);color:var(--ink)">{{ formHeading }}</div>
+<div onClick="{{ onSave }}" style="font:700 14px var(--font-body);color:var(--on-accent);background:var(--accent);padding:9px 16px;border-radius:12px;cursor:pointer">Save</div>
+</div>
+<div style="padding:14px 20px 0">
+<input value="{{ formTitle }}" onChange="{{ onTitleChange }}" placeholder="Reminder title" style="width:100%;box-sizing:border-box;border:none;outline:none;background:transparent;font:700 24px var(--font-body);color:var(--ink);padding:6px 0" />
+<textarea value="{{ formNotes }}" onChange="{{ onNotesChange }}" placeholder="Add notes (optional)" rows="2" style="width:100%;box-sizing:border-box;border:none;outline:none;background:transparent;resize:none;font:400 14px/1.5 var(--font-body);color:var(--ink-2);padding:6px 0;margin-top:2px"></textarea>
+</div>
+<div style="padding:8px 20px 0;display:flex;flex-direction:column;gap:11px">
+<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:13px;padding:14px 15px;border-bottom:1px solid var(--line)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="5" width="16" height="16" rx="4" stroke="var(--ic-1)" stroke-width="2"/><path d="M4 9h16M8 3v4M16 3v4" stroke="var(--ic-1)" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="14.5" r="1.8" fill="var(--ic-2)"/></svg><div style="flex:1"><div style="font:600 14px var(--font-body);color:var(--ink)">Date &amp; time</div></div><div style="display:flex;align-items:center;gap:9px"><span style="font:600 13px var(--font-body);color:var(--ink-2)">{{ formDateLabel }}</span><span style="font:600 13px var(--font-display);color:var(--accent-ink);background:var(--accent-soft);padding:4px 9px;border-radius:8px">{{ formTimeLabel }}</span></div></div>
+<div style="display:flex;align-items:center;gap:13px;padding:14px 15px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6Z" stroke="var(--ic-1)" stroke-width="2" stroke-linejoin="round"/><path d="M10.5 20a2 2 0 0 0 3 0" stroke="var(--ic-2)" stroke-width="2" stroke-linecap="round"/></svg><div style="flex:1"><div style="font:600 14px var(--font-body);color:var(--ink)">Remind me</div></div></div>
+<div style="padding:0 15px 15px"><div style="display:flex;background:var(--field);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px"><sc-for list="{{ offsetSeg }}" as="opt" hint-placeholder-count="3"><div onClick="{{ opt.onTap }}" style="flex:1;text-align:center;padding:9px 4px;border-radius:9px;font:600 11.5px var(--font-body);cursor:pointer;background:{{ opt.bg }};color:{{ opt.fg }}">{{ opt.label }}</div></sc-for></div></div>
+</div>
+<div onClick="{{ onOpenSheet }}" style="display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 15px;cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 7h13l-2.5-2.5M20 17H7l2.5 2.5" stroke="var(--ic-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="1.6" fill="var(--ic-2)"/></svg><div style="flex:1"><div style="font:600 14px var(--font-body);color:var(--ink)">Repeat</div></div><span style="font:600 13px var(--font-body);color:var(--accent-ink)">{{ formRecLabel }}</span><svg width="16" height="16" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round" fill="none"/></svg></div>
+<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 15px"><div style="display:flex;align-items:center;gap:13px;margin-bottom:12px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 8h10l-10 8h10" stroke="var(--ic-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18" cy="6" r="2" fill="var(--ic-2)"/></svg><div style="flex:1"><div style="font:600 14px var(--font-body);color:var(--ink)">Snooze duration</div></div></div><div style="display:flex;background:var(--field);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px"><sc-for list="{{ snoozeSeg }}" as="opt" hint-placeholder-count="4"><div onClick="{{ opt.onTap }}" style="flex:1;text-align:center;padding:9px 4px;border-radius:9px;font:600 12px var(--font-body);cursor:pointer;background:{{ opt.bg }};color:{{ opt.fg }}">{{ opt.label }}</div></sc-for></div></div>
+<sc-if value="{{ isEditing }}"><div onClick="{{ onDeleteForm }}" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:16px;background:transparent;border:1px solid var(--line-2);cursor:pointer;margin-top:2px"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V5h6v2M7 7l1 12h8l1-12" stroke="#C25B4A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:600 14px var(--font-body);color:#C25B4A">Delete reminder</span></div></sc-if>
+</div>
+</div>
+</sc-if>
+
+<!-- ---- DETAIL ---- -->
+<sc-if value="{{ showDetail }}">
+<div style="padding:2px 0 40px">
+<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 18px">
+<div onClick="{{ goHome }}" style="width:38px;height:38px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></div>
+<div style="display:flex;gap:9px"><div onClick="{{ onDeleteSel }}" style="width:38px;height:38px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 7h14M9 7V5h6v2M7 7l1 12h8l1-12" stroke="var(--ink-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div onClick="{{ onEditSel }}" style="display:flex;align-items:center;gap:7px;padding:0 15px;border-radius:12px;background:var(--accent);cursor:pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 20l4-1L19 8l-3-3L5 16l-1 4Z" stroke="#173B44" stroke-width="2" stroke-linejoin="round"/></svg><span style="font:700 13px var(--font-body);color:#173B44">Edit</span></div></div>
+</div>
+<div style="padding:18px 24px 0">
+<div style="display:flex;align-items:center;gap:9px"><span style="font:600 10px var(--font-body);letter-spacing:1px;color:var(--accent-ink);background:var(--accent-soft);padding:5px 10px;border-radius:8px">{{ selBadge }}</span><span style="font:500 12px var(--font-body);color:{{ selStatusColor }}">{{ selStatus }}</span></div>
+<div style="font:800 27px/1.15 var(--font-body);color:var(--ink);margin-top:14px">{{ selTitle }}</div>
+</div>
+<div style="margin:18px 20px 0;background:var(--hero-bg);border-radius:22px;padding:18px 20px;position:relative;overflow:hidden;border:1px solid rgba(224,164,59,.18)">
+<div style="position:absolute;right:-30px;top:-36px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(224,164,59,.26),transparent 70%)"></div>
+<div style="font:700 10px var(--font-body);letter-spacing:1.4px;color:#E0A43B;position:relative">NEXT ALARM</div>
+<div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;position:relative"><span style="font:700 15px var(--font-body);color:var(--hero-ink)">{{ selNextDay }}</span><span style="font:700 30px var(--font-display);color:#fff;letter-spacing:-.5px">{{ selNextTime }}</span></div>
+</div>
+<sc-if value="{{ selHasNotes }}">
+<div style="margin:14px 20px 0;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px 16px"><div style="font:600 10px var(--font-body);letter-spacing:1px;color:var(--ink-3);margin-bottom:7px">NOTES</div><div style="font:400 14px/1.55 var(--font-body);color:var(--ink)">{{ selNotes }}</div></div>
+</sc-if>
+<div style="padding:24px 24px 10px;display:flex;align-items:center;gap:8px"><span style="font:700 13px var(--font-body);color:var(--ink)">Next 5 occurrences</span><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="var(--ok)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="var(--ok)" stroke-width="1.6"/></svg></div>
+<div style="padding:0 20px;display:flex;flex-direction:column">
+<sc-for list="{{ occurrences }}" as="oc" hint-placeholder-count="5">
+<div style="display:flex;align-items:center;gap:14px;padding:13px 4px;border-bottom:1px solid var(--line)"><div style="width:26px;height:26px;border-radius:8px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;font:700 11px var(--font-display);color:var(--accent-ink);flex:none">{{ oc.idx }}</div><div style="flex:1;font:600 14px var(--font-body);color:var(--ink)">{{ oc.day }}</div><div style="font:600 13px var(--font-display);color:var(--ink-2)">{{ oc.time }}</div></div>
+</sc-for>
+</div>
+<div style="margin:16px 20px 0;padding:13px 15px;background:var(--ok-soft);border-radius:14px;display:flex;align-items:center;gap:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z" stroke="var(--ok)" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" stroke="var(--ok)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span style="font:500 12px/1.4 var(--font-body);color:var(--ink-2)">Reliable alarms are on. Takna will fire even in battery-saver mode.</span></div>
+</div>
+</sc-if>
+
+<!-- ---- SETTINGS ---- -->
+<sc-if value="{{ showSettings }}">
+<div style="padding:2px 0 132px">
+<div style="display:flex;align-items:center;gap:13px;padding:10px 20px 4px"><div onClick="{{ goHome }}" style="width:38px;height:38px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg></div><div style="font:800 22px var(--font-body);color:var(--ink)">Settings</div></div>
+
+<div style="padding:20px 24px 8px;font:700 11px var(--font-body);letter-spacing:1px;color:var(--ink-3)">DEFAULTS</div>
+<div style="margin:0 20px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px 16px"><div style="font:600 13.5px var(--font-body);color:var(--ink);margin-bottom:10px">Default reminder offset</div><div style="display:flex;background:var(--field);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px"><sc-for list="{{ setOffsetSeg }}" as="opt" hint-placeholder-count="3"><div onClick="{{ opt.onTap }}" style="flex:1;text-align:center;padding:9px 4px;border-radius:9px;font:600 11.5px var(--font-body);cursor:pointer;background:{{ opt.bg }};color:{{ opt.fg }}">{{ opt.label }}</div></sc-for></div><div style="height:1px;background:var(--line);margin:16px 0"></div><div style="font:600 13.5px var(--font-body);color:var(--ink);margin-bottom:10px">Default snooze</div><div style="display:flex;background:var(--field);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px"><sc-for list="{{ setSnoozeSeg }}" as="opt" hint-placeholder-count="4"><div onClick="{{ opt.onTap }}" style="flex:1;text-align:center;padding:9px 4px;border-radius:9px;font:600 12px var(--font-body);cursor:pointer;background:{{ opt.bg }};color:{{ opt.fg }}">{{ opt.label }}</div></sc-for></div></div>
+
+<div style="padding:22px 24px 8px;font:700 11px var(--font-body);letter-spacing:1px;color:var(--ink-3)">RELIABILITY</div>
+<div style="margin:0 20px;background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid var(--line)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6Z" stroke="var(--ic-1)" stroke-width="2" stroke-linejoin="round"/></svg><div style="flex:1"><div style="font:600 14px var(--font-body);color:var(--ink)">Notifications</div></div><span style="display:flex;align-items:center;gap:5px;font:700 11px var(--font-body);color:var(--ok);background:var(--ok-soft);padding:5px 10px;border-radius:20px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="var(--ok)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Granted</span></div>
+<div style="display:flex;align-items:center;gap:12px;padding:15px 16px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="var(--ic-1)" stroke-width="2"/><path d="M12 9.5V13l2.5 1.5" stroke="var(--ic-2)" stroke-width="2" stroke-linecap="round"/><path d="M9 3h6" stroke="var(--ic-1)" stroke-width="2" stroke-linecap="round"/></svg><div style="flex:1"><div style="font:600 14px var(--font-body);color:var(--ink)">Exact alarms</div></div><span style="display:flex;align-items:center;gap:5px;font:700 11px var(--font-body);color:var(--ok);background:var(--ok-soft);padding:5px 10px;border-radius:20px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="var(--ok)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Granted</span></div>
+</div>
+<div style="margin:12px 20px 0;background:var(--hero-bg);border-radius:18px;padding:17px 17px;position:relative;overflow:hidden;border:1px solid rgba(224,164,59,.2)">
+<div style="position:absolute;right:-24px;bottom:-30px;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle,rgba(224,164,59,.24),transparent 70%)"></div>
+<div style="display:flex;align-items:center;gap:9px;position:relative"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M13 3L5 14h6l-1 7 8-11h-6l1-7Z" stroke="#E0A43B" stroke-width="1.8" stroke-linejoin="round" fill="rgba(224,164,59,.25)"/></svg><span style="font:700 14px var(--font-body);color:var(--hero-ink)">Make alarms reliable</span></div>
+<div style="font:400 12.5px/1.5 var(--font-body);color:var(--hero-sub);margin-top:8px;position:relative">Let Takna ignore battery optimization so alarms always fire on time &mdash; even when your phone sleeps overnight.</div>
+<sc-if value="{{ batteryOff }}"><div onClick="{{ onFixBattery }}" style="margin-top:13px;display:inline-block;background:#E0A43B;color:#173B44;font:700 13px var(--font-body);padding:10px 18px;border-radius:12px;cursor:pointer;position:relative">Allow unrestricted</div></sc-if>
+<sc-if value="{{ batteryOn }}"><div style="margin-top:13px;display:inline-flex;align-items:center;gap:7px;background:rgba(87,199,154,.18);color:#8FE3C0;font:700 13px var(--font-body);padding:10px 16px;border-radius:12px;position:relative"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="#8FE3C0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Reliable mode on</div></sc-if>
+</div>
+
+<div style="padding:22px 24px 8px;font:700 11px var(--font-body);letter-spacing:1px;color:var(--ink-3)">APPEARANCE</div>
+<div style="margin:0 20px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px 16px"><div style="font:600 13.5px var(--font-body);color:var(--ink);margin-bottom:10px">Theme</div><div style="display:flex;background:var(--field);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px"><sc-for list="{{ setThemeSeg }}" as="opt" hint-placeholder-count="2"><div onClick="{{ opt.onTap }}" style="flex:1;text-align:center;padding:10px 4px;border-radius:9px;font:600 12.5px var(--font-body);cursor:pointer;background:{{ opt.bg }};color:{{ opt.fg }}">{{ opt.label }}</div></sc-for></div></div>
+</div>
+</sc-if>
+
+<!-- ---- ONBOARDING ---- -->
+<sc-if value="{{ showOnboarding }}">
+<div style="padding:40px 26px 40px;min-height:640px;display:flex;flex-direction:column">
+<div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;border-radius:10px;background:var(--hero-bg);display:flex;align-items:center;justify-content:center"><div style="width:15px;height:15px;border:2.4px solid #E0A43B;border-radius:50%;position:relative"><div style="position:absolute;top:1px;left:5.2px;width:2.4px;height:5.5px;background:#E0A43B;border-radius:2px"></div></div></div><span style="font:800 18px var(--font-body);color:var(--ink)">Takna</span></div>
+<div style="font:800 27px/1.2 var(--font-body);color:var(--ink);margin-top:38px">So Takna can wake you on time</div>
+<div style="font:400 14px/1.6 var(--font-body);color:var(--ink-2);margin-top:12px">Two quick permissions and every reminder will fire at the exact minute &mdash; reliably, even when your phone is asleep.</div>
+<div style="display:flex;flex-direction:column;gap:12px;margin-top:30px">
+<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px"><div style="display:flex;align-items:flex-start;gap:13px"><div style="width:42px;height:42px;border-radius:13px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6Z" stroke="var(--ic-1)" stroke-width="2" stroke-linejoin="round"/><path d="M10.5 20a2 2 0 0 0 3 0" stroke="var(--ic-2)" stroke-width="2" stroke-linecap="round"/></svg></div><div style="flex:1"><div style="font:700 15px var(--font-body);color:var(--ink)">Show notifications</div><div style="font:400 12.5px/1.5 var(--font-body);color:var(--ink-2);margin-top:3px">Reminders appear on your lock screen and play the alarm sound.</div></div></div>
+<sc-if value="{{ obNotifOff }}"><div onClick="{{ onGrantNotif }}" style="margin-top:13px;text-align:center;background:var(--accent);color:var(--on-accent);font:700 13.5px var(--font-body);padding:12px;border-radius:13px;cursor:pointer">Allow notifications</div></sc-if>
+<sc-if value="{{ obNotifOn }}"><div style="margin-top:13px;text-align:center;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--ok-soft);color:var(--ok);font:700 13.5px var(--font-body);padding:12px;border-radius:13px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="var(--ok)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Allowed</div></sc-if>
+</div>
+<div style="background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px"><div style="display:flex;align-items:flex-start;gap:13px"><div style="width:42px;height:42px;border-radius:13px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none"><svg width="21" height="21" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="var(--ic-1)" stroke-width="2"/><path d="M12 9.5V13l2.5 1.5" stroke="var(--ic-2)" stroke-width="2" stroke-linecap="round"/><path d="M9 3h6" stroke="var(--ic-1)" stroke-width="2" stroke-linecap="round"/></svg></div><div style="flex:1"><div style="font:700 15px var(--font-body);color:var(--ink)">Exact alarms &amp; reliability</div><div style="font:400 12.5px/1.5 var(--font-body);color:var(--ink-2);margin-top:3px">Fire at the precise minute and ignore battery-saver, so nothing is missed.</div></div></div>
+<sc-if value="{{ obAlarmOff }}"><div onClick="{{ onGrantAlarm }}" style="margin-top:13px;text-align:center;background:var(--accent);color:var(--on-accent);font:700 13.5px var(--font-body);padding:12px;border-radius:13px;cursor:pointer">Allow exact alarms</div></sc-if>
+<sc-if value="{{ obAlarmOn }}"><div style="margin-top:13px;text-align:center;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--ok-soft);color:var(--ok);font:700 13.5px var(--font-body);padding:12px;border-radius:13px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="var(--ok)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Allowed</div></sc-if>
+</div>
+</div>
+<div style="flex:1"></div>
+<div style="font:400 11.5px var(--font-body);color:var(--ink-3);text-align:center;margin-top:26px">You can change these anytime in Settings.</div>
+<sc-if value="{{ obReady }}"><div onClick="{{ onObContinue }}" style="margin-top:14px;text-align:center;background:var(--hero-bg);color:var(--hero-ink);font:700 15px var(--font-body);padding:16px;border-radius:16px;cursor:pointer;box-shadow:0 12px 26px -8px rgba(23,59,68,.5)">Start using Takna</div></sc-if>
+<sc-if value="{{ obNotReady }}"><div onClick="{{ onObContinue }}" style="margin-top:14px;text-align:center;background:var(--field);color:var(--ink-3);font:700 15px var(--font-body);padding:16px;border-radius:16px;cursor:pointer">Skip for now</div></sc-if>
+</div>
+</sc-if>
+
+</div>
+<!-- end content -->
+
+<!-- FAB -->
+<sc-if value="{{ showFab }}">
+<sc-if value="{{ isIOS }}" hint-placeholder-val="{{ true }}"><div onClick="{{ onFab }}" style="position:absolute;right:22px;bottom:100px;width:60px;height:60px;border-radius:20px;background:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 14px 26px -6px rgba(224,164,59,.6);z-index:20"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#173B44" stroke-width="2.6" stroke-linecap="round"/></svg></div></sc-if>
+<sc-if value="{{ isAndroid }}"><div onClick="{{ onFab }}" style="position:absolute;right:22px;bottom:100px;width:60px;height:60px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 14px 26px -6px rgba(224,164,59,.6);z-index:20"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke="#173B44" stroke-width="2.6" stroke-linecap="round"/></svg></div></sc-if>
+</sc-if>
+
+<!-- tab bar -->
+<sc-if value="{{ showTabBar }}">
+<div style="flex:none;height:82px;background:var(--nav-bg);border-top:1px solid var(--nav-line);display:flex;align-items:flex-start;justify-content:space-around;padding:14px 42px 0;z-index:15">
+<div onClick="{{ goHome }}" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="{{ tabHomeStroke }}" stroke-width="2"/><path d="M12 7.5V12l3 1.8" stroke="var(--ic-2)" stroke-width="2" stroke-linecap="round"/></svg><span style="font:700 10px var(--font-body);color:{{ tabHomeColor }}">Reminders</span></div>
+<div onClick="{{ goSettings }}" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><line x1="5" y1="9" x2="19" y2="9" stroke="{{ tabSetStroke }}" stroke-width="2" stroke-linecap="round"/><line x1="5" y1="15" x2="19" y2="15" stroke="{{ tabSetStroke }}" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="9" r="2.6" fill="{{ tabSetDot }}"/><circle cx="15" cy="15" r="2.6" fill="{{ tabSetDot }}"/></svg><span style="font:600 10px var(--font-body);color:{{ tabSetColor }}">Settings</span></div>
+</div>
+</sc-if>
+
+<!-- home indicator -->
+<sc-if value="{{ isIOS }}" hint-placeholder-val="{{ true }}"><div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:130px;height:5px;border-radius:3px;background:var(--ink);opacity:.28;z-index:30"></div></sc-if>
+
+<!-- ===== recurrence bottom sheet ===== -->
+<sc-if value="{{ sheetOpen }}">
+<div onClick="{{ onCloseSheet }}" style="position:absolute;inset:0;background:var(--scrim);z-index:50;animation:tk-fade .2s ease"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;background:var(--bg);border-radius:26px 26px 0 0;z-index:51;padding:8px 20px 26px;box-shadow:0 -12px 40px rgba(0,0,0,.28);animation:tk-slide .28s cubic-bezier(.22,1,.36,1);max-height:88%;overflow-y:auto" class="tk-scroll">
+<div style="width:38px;height:5px;border-radius:3px;background:var(--line-2);margin:6px auto 16px"></div>
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style="font:800 18px var(--font-body);color:var(--ink)">Repeat</span><div onClick="{{ onCloseSheet }}" style="font:700 14px var(--font-body);color:var(--accent-ink);cursor:pointer">Done</div></div>
+<div style="display:flex;flex-direction:column;gap:9px">
+<sc-for list="{{ recOptions }}" as="opt" hint-placeholder-count="6">
+<div onClick="{{ opt.onTap }}" style="display:flex;align-items:center;justify-content:space-between;padding:15px 16px;border-radius:15px;background:{{ opt.bg }};border:1px solid {{ opt.border }};cursor:pointer"><span style="font:600 14.5px var(--font-body);color:{{ opt.fg }}">{{ opt.label }}</span><sc-if value="{{ opt.active }}"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 12l4 4L19 6" stroke="var(--accent-ink)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if></div>
+</sc-for>
+</div>
+<sc-if value="{{ customOpen }}">
+<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
+<div style="font:600 11px var(--font-body);letter-spacing:.8px;color:var(--ink-3);margin-bottom:11px">EVERY</div>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+<div style="display:flex;align-items:center;gap:2px;background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:4px"><div onClick="{{ onIntervalDec }}" style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font:700 20px var(--font-body);color:var(--ink)">&minus;</div><div style="min-width:34px;text-align:center;font:700 18px var(--font-display);color:var(--ink)">{{ interval }}</div><div onClick="{{ onIntervalInc }}" style="width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font:700 20px var(--font-body);color:var(--ink)">+</div></div>
+<div style="flex:1;display:flex;background:var(--field);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px"><sc-for list="{{ unitSeg }}" as="opt" hint-placeholder-count="3"><div onClick="{{ opt.onTap }}" style="flex:1;text-align:center;padding:9px 4px;border-radius:9px;font:600 12px var(--font-body);cursor:pointer;background:{{ opt.bg }};color:{{ opt.fg }}">{{ opt.label }}</div></sc-for></div>
+</div>
+<sc-if value="{{ showWeekdays }}">
+<div style="font:600 11px var(--font-body);letter-spacing:.8px;color:var(--ink-3);margin-bottom:11px">ON THESE DAYS</div>
+<div style="display:flex;gap:7px;justify-content:space-between">
+<sc-for list="{{ weekdayChips }}" as="d" hint-placeholder-count="7">
+<div onClick="{{ d.onTap }}" style="width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 12px var(--font-body);cursor:pointer;background:{{ d.bg }};color:{{ d.fg }};border:1px solid {{ d.border }}">{{ d.label }}</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:760,&quot;height&quot;:900},&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;onboarding&quot;,&quot;empty&quot;,&quot;settings&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;'home'|'onboarding'|'empty'|'settings'&quot;,&quot;section&quot;:&quot;Prototype&quot;},&quot;defaultPlatform&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ios&quot;,&quot;android&quot;],&quot;default&quot;:&quot;ios&quot;,&quot;tsType&quot;:&quot;'ios'|'android'&quot;,&quot;section&quot;:&quot;Prototype&quot;},&quot;use24hClock&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Prototype&quot;}}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.now = new Date(2026,6,4,6,46);
+    this.state = {
+      screen: props.startScreen || 'home',
+      platform: props.defaultPlatform || 'ios',
+      theme: 'light',
+      sheetOpen: false,
+      editingId: null,
+      selectedId: 'standup',
+      defaultOffset: '5 min before',
+      defaultSnooze: '10 min',
+      battery: false,
+      ob: { notif:false, alarm:false },
+      form: this.blankForm(),
+      reminders: [
+        {id:'standup', title:'Team standup', icon:'clock', next:new Date(2026,6,4,9,0), recType:'daily', enabled:true, notes:'Zoom call — quick round on blockers and the plan for the day.'},
+        {id:'medicine', title:'Take medicine', icon:'pill', next:new Date(2026,6,4,20,0), recType:'daily', enabled:true, notes:'Vitamin D + evening dose. Take with food.'},
+        {id:'birthday', title:"Mom's birthday", icon:'heart', next:new Date(2027,5,12,9,0), recType:'yearly', enabled:false, notes:'Call in the morning. Flowers already ordered.'},
+        {id:'rent', title:'Pay rent', icon:'card', next:new Date(2026,7,1,17,0), recType:'monthly', enabled:true, notes:'Transfer to landlord before 5:00 PM.'},
+      ],
+    };
+  }
+  blankForm(){ return {title:'', notes:'', when:new Date(2026,6,4,9,0), offset:'5 min before', recType:'none', interval:1, unit:'week', weekdays:[false,true,false,true,false,true,false], snooze:'10 min'}; }
+
+  // ---- helpers ----
+  fmtTime(d){ let h=d.getHours(), m=d.getMinutes(); const mm=String(m).padStart(2,'0');
+    if(this.props.use24hClock){ return String(h).padStart(2,'0')+':'+mm; }
+    const ap = h<12?'AM':'PM'; let hh=h%12; if(hh===0)hh=12; return hh+':'+mm+' '+ap; }
+  fmtDay(d){ const now=this.now;
+    const a=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const b=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+    const diff=Math.round((b-a)/86400000);
+    if(diff===0) return 'Today'; if(diff===1) return 'Tomorrow'; if(diff===-1) return 'Yesterday';
+    const wd=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+    let s=wd+', '+mo+' '+d.getDate();
+    if(d.getFullYear()!==now.getFullYear()) s+=', '+d.getFullYear();
+    return s; }
+  fmtMonthDay(d){ const mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]; return mo+' '+d.getDate(); }
+  isToday(d){ return this.fmtDay(d)==='Today'; }
+  countdown(d){ let diff=d-this.now; if(diff<=0) return 'now'; let mins=Math.round(diff/60000); if(mins<60) return 'in '+mins+'m'; let h=Math.floor(mins/60), m=mins%60; return m? ('in '+h+'h '+m+'m') : ('in '+h+'h'); }
+  badgeFor(r){ return ({none:'Once',daily:'Daily',weekly:'Weekly',monthly:'Monthly',yearly:'Yearly',custom:'Custom'})[r.recType]||''; }
+  recLabelFor(r){
+    switch(r.recType){
+      case 'none': return 'Does not repeat';
+      case 'daily': return 'Daily';
+      case 'weekly': return 'Weekly';
+      case 'monthly': return 'Monthly';
+      case 'yearly': return 'Yearly';
+      case 'custom': { const n=r.interval||1, u=r.unit||'week'; let s='Every '+(n>1?n+' ':'')+u+(n>1?'s':''); if(u==='week'){ const dl=this.weekdayLabels(r.weekdays); if(dl) s+=' · '+dl; } return s; }
+      default: return 'Does not repeat';
+    }
+  }
+  weekdayLabels(arr){ if(!arr) return ''; const names=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']; const on=arr.map((b,i)=>b?names[i]:null).filter(Boolean); if(on.length===7) return 'every day'; return on.join(', '); }
+  occurrences(r){ const t=r.recType; const count=(t==='none')?1:5; let d=new Date(r.next.getTime());
+    const adv=(x)=>{ if(t==='daily')x.setDate(x.getDate()+1); else if(t==='weekly')x.setDate(x.getDate()+7); else if(t==='monthly')x.setMonth(x.getMonth()+1); else if(t==='yearly')x.setFullYear(x.getFullYear()+1); else if(t==='custom'){ const n=r.interval||1,u=r.unit||'week'; if(u==='day')x.setDate(x.getDate()+n); else if(u==='week')x.setDate(x.getDate()+7*n); else x.setMonth(x.getMonth()+n); } else x.setDate(x.getDate()+1); };
+    let g=0; while(t!=='none' && d<this.now && g<2000){ adv(d); g++; }
+    const out=[]; for(let i=0;i<count;i++){ out.push({idx:i+1, day:this.fmtDay(d), time:this.fmtTime(d)}); adv(d); } return out; }
+  icon(key){ const e=React.createElement; const st={strokeWidth:2,fill:'none',strokeLinecap:'round'};
+    const svg=(...ch)=>e('svg',{width:20,height:20,viewBox:'0 0 24 24',fill:'none'},...ch);
+    if(key==='pill') return svg(e('rect',{x:6,y:4,width:12,height:16,rx:5,stroke:'var(--ic-1)',...st}),e('path',{d:'M9 9h6',stroke:'var(--ic-2)',...st}));
+    if(key==='heart') return svg(e('path',{d:'M12 20s-7-4.5-7-9a3.7 3.7 0 0 1 7-1.8A3.7 3.7 0 0 1 19 11c0 4.5-7 9-7 9Z',stroke:'var(--ic-1)',strokeWidth:2,strokeLinejoin:'round',fill:'none'}),e('circle',{cx:12,cy:10.5,r:1.5,fill:'var(--ic-2)'}));
+    if(key==='card') return svg(e('rect',{x:4,y:6,width:16,height:12,rx:3,stroke:'var(--ic-1)',...st}),e('path',{d:'M4 10h16',stroke:'var(--ic-2)',strokeWidth:2}));
+    return svg(e('circle',{cx:12,cy:12,r:9,stroke:'var(--ic-1)',...st}),e('path',{d:'M12 7.5V12l3 1.8',stroke:'var(--ic-2)',...st}));
+  }
+
+  // ---- actions ----
+  setScreen(s){ this.setState({screen:s, sheetOpen:false}); }
+  setTheme(t){ this.setState({theme:t}); }
+  setPlatform(p){ this.setState({platform:p}); }
+  toggle(id,e){ if(e&&e.stopPropagation)e.stopPropagation(); this.setState(s=>({reminders:s.reminders.map(r=>r.id===id?{...r,enabled:!r.enabled}:r)})); }
+  openDetail(id){ this.setState({screen:'detail', selectedId:id}); }
+  openAdd(){ this.setState({screen:'add', editingId:null, form:this.blankForm()}); }
+  openEdit(id){ const r=this.state.reminders.find(x=>x.id===id); if(!r)return; const f={title:r.title, notes:r.notes||'', when:new Date(r.next.getTime()), offset:this.state.defaultOffset, recType:r.recType, interval:r.interval||1, unit:r.unit||'week', weekdays:r.weekdays||[false,true,false,true,false,true,false], snooze:this.state.defaultSnooze}; this.setState({screen:'add', editingId:id, form:f}); }
+  saveForm(){ const f=this.state.form; const title=(f.title||'').trim()||'Untitled reminder';
+    this.setState(s=>{ let rem=[...s.reminders]; const base=s.editingId? (rem.find(r=>r.id===s.editingId)||{}) : {};
+      const data={ title, icon: base.icon||'clock', next:new Date(f.when.getTime()), recType:f.recType, interval:f.interval, unit:f.unit, weekdays:[...f.weekdays], enabled:true, notes:f.notes };
+      if(s.editingId){ rem=rem.map(r=>r.id===s.editingId?{...r,...data}:r); } else { rem.push({id:'r'+Date.now(),...data}); }
+      return {reminders:rem, screen:'home', editingId:null}; }); }
+  deleteReminder(id){ this.setState(s=>({reminders:s.reminders.filter(r=>r.id!==id), screen:'home', editingId:null})); }
+  setForm(k,v){ this.setState(s=>({form:{...s.form,[k]:v}})); }
+  openSheet(){ this.setState({sheetOpen:true}); }
+  closeSheet(){ this.setState({sheetOpen:false}); }
+  pickRec(type){ this.setState(s=>({form:{...s.form,recType:type}, sheetOpen: type==='custom'})); }
+  incInterval(delta){ this.setState(s=>({form:{...s.form,interval:Math.max(1,(s.form.interval||1)+delta)}})); }
+  toggleWeekday(i){ this.setState(s=>{ const w=[...s.form.weekdays]; w[i]=!w[i]; return {form:{...s.form,weekdays:w}}; }); }
+  fixBattery(){ this.setState({battery:true}); }
+  obGrant(k){ this.setState(s=>({ob:{...s.ob,[k]:true}})); }
+  obContinue(){ this.setState({screen:'home', ob:{notif:false,alarm:false}}); }
+
+  // ---- segmented builders ----
+  cseg(active){ return active? {bg:'#173B44',fg:'#fff'} : {bg:'transparent',fg:'#173B44'}; }
+  aseg(active){ return active? {bg:'var(--accent-soft)',fg:'var(--accent-ink)'} : {bg:'transparent',fg:'var(--ink-2)'}; }
+
+  renderVals(){
+    const S=this.state; const isIOS=S.platform==='ios'; const isDark=S.theme==='dark';
+    const all=[...S.reminders];
+    const mk=r=>({ ...r, iconEl:this.icon(r.icon), badge:this.badgeFor(r), when: this.isToday(r.next)?this.fmtTime(r.next):this.fmtMonthDay(r.next), toggleOn:r.enabled, toggleOff:!r.enabled, onToggle:(e)=>this.toggle(r.id,e), onOpen:()=>this.openDetail(r.id) });
+    const today=all.filter(r=>this.isToday(r.next)).sort((a,b)=>a.next-b.next).map(mk);
+    const upcoming=all.filter(r=>!this.isToday(r.next)).sort((a,b)=>a.next-b.next).map(mk);
+    const enabled=all.filter(r=>r.enabled).sort((a,b)=>a.next-b.next);
+    const hero = enabled.find(r=>this.isToday(r.next)) || enabled[0] || all[0] || {title:'—',next:this.now,recType:'none'};
+    const htp=this.fmtTime(hero.next).split(' ');
+    // detail
+    const sel = all.find(r=>r.id===S.selectedId) || all[0] || {title:'—',next:this.now,recType:'none',notes:'',enabled:true};
+    const occ=this.occurrences(sel);
+    // form
+    const f=S.form;
+    const offsetSeg=['At time','5 min before','Custom'].map(l=>({label:l,onTap:()=>this.setForm('offset',l),...this.aseg(f.offset===l)}));
+    const snoozeSeg=['5 min','10 min','15 min','30 min'].map(l=>({label:l,onTap:()=>this.setForm('snooze',l),...this.aseg(f.snooze===l)}));
+    // sheet
+    const recDefs=[['none','Does not repeat'],['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['yearly','Yearly'],['custom','Custom']];
+    const recOptions=recDefs.map(([t,l])=>{ const a=f.recType===t; return {label:l,active:a,onTap:()=>this.pickRec(t), bg:a?'var(--accent-soft)':'var(--surface)', fg:a?'var(--accent-ink)':'var(--ink)', border:a?'var(--accent)':'var(--line)'}; });
+    const unitSeg=[['day','Day'],['week','Week'],['month','Month']].map(([u,l])=>({label:l,onTap:()=>this.setForm('unit',u),...this.aseg(f.unit===u)}));
+    const names=['S','M','T','W','T','F','S'];
+    const weekdayChips=(f.weekdays||[]).map((on,i)=>({label:names[i],onTap:()=>this.toggleWeekday(i), bg:on?'var(--accent)':'transparent', fg:on?'var(--on-accent)':'var(--ink-2)', border:on?'var(--accent)':'var(--line-2)'}));
+    // settings
+    const setOffsetSeg=['At time','5 min before','10 min before'].map(l=>({label:l,onTap:()=>this.setState({defaultOffset:l}),...this.aseg(S.defaultOffset===l)}));
+    const setSnoozeSeg=['5 min','10 min','15 min','30 min'].map(l=>({label:l,onTap:()=>this.setState({defaultSnooze:l}),...this.aseg(S.defaultSnooze===l)}));
+    const setThemeSeg=['Light','Dark'].map(l=>({label:l,onTap:()=>this.setTheme(l.toLowerCase()),...this.aseg(S.theme===l.toLowerCase())}));
+    // nav
+    const chipDefs=[['Home','home'],['Add','add'],['Detail','detail'],['Settings','settings'],['Onboarding','onboarding'],['Empty','empty']];
+    const navChips=chipDefs.map(([l,sc])=>{ const a=S.screen===sc; const act=()=>{ if(sc==='add')this.openAdd(); else if(sc==='detail')this.openDetail(S.selectedId); else this.setScreen(sc); }; return {label:l,onTap:act, bg:a?'#173B44':'#fff', fg:a?'#fff':'#173B44', border:a?'#173B44':'rgba(23,59,68,.14)'}; });
+
+    const greetHour=this.now.getHours();
+    const greeting = greetHour<12?'Good morning':greetHour<18?'Good afternoon':'Good evening';
+
+    return {
+      themeAttr:S.theme, isIOS, isAndroid:!isIOS, isDark,
+      showHome:S.screen==='home', showEmpty:S.screen==='empty', showAdd:S.screen==='add', showDetail:S.screen==='detail', showSettings:S.screen==='settings', showOnboarding:S.screen==='onboarding',
+      showTabBar:['home','settings','empty'].includes(S.screen), showFab:['home','empty'].includes(S.screen),
+      todayLabel:this.fmtDay(this.now)==='Today'?('Thursday, Jul 4'):this.fmtDay(this.now), greeting,
+      today, upcoming, todayCount:today.length, upcomingCount:upcoming.length,
+      heroTitle:hero.title, heroBadge:this.badgeFor(hero), heroTimeMain:htp[0], heroTimeSuffix:htp[1]||'', heroCountdown:this.countdown(hero.next),
+      // detail
+      selTitle:sel.title, selBadge:this.badgeFor(sel), selNextDay:this.fmtDay(sel.next), selNextTime:this.fmtTime(sel.next),
+      selNotes:sel.notes, selHasNotes:!!(sel.notes&&sel.notes.length),
+      selStatus: sel.enabled?'Active':'Paused', selStatusColor: sel.enabled?'var(--ok)':'var(--ink-3)',
+      occurrences:occ, onEditSel:()=>this.openEdit(sel.id), onDeleteSel:()=>this.deleteReminder(sel.id),
+      // form
+      formHeading:S.editingId?'Edit reminder':'New reminder', isEditing:!!S.editingId,
+      formTitle:f.title, formNotes:f.notes, formDateLabel:this.fmtDay(f.when), formTimeLabel:this.fmtTime(f.when), formRecLabel:this.recLabelFor(f),
+      onTitleChange:(e)=>this.setForm('title',e.target.value), onNotesChange:(e)=>this.setForm('notes',e.target.value),
+      offsetSeg, snoozeSeg, onSave:()=>this.saveForm(), onDeleteForm:()=>this.deleteReminder(S.editingId), onOpenSheet:()=>this.openSheet(),
+      // sheet
+      sheetOpen:S.sheetOpen, recOptions, customOpen:f.recType==='custom', interval:f.interval, unitSeg, showWeekdays:f.unit==='week', weekdayChips,
+      onCloseSheet:()=>this.closeSheet(), onIntervalDec:()=>this.incInterval(-1), onIntervalInc:()=>this.incInterval(1),
+      // settings
+      setOffsetSeg, setSnoozeSeg, setThemeSeg, batteryOff:!S.battery, batteryOn:S.battery, onFixBattery:()=>this.fixBattery(),
+      // onboarding
+      obNotifOn:S.ob.notif, obNotifOff:!S.ob.notif, obAlarmOn:S.ob.alarm, obAlarmOff:!S.ob.alarm,
+      obReady:S.ob.notif&&S.ob.alarm, obNotReady:!(S.ob.notif&&S.ob.alarm),
+      onGrantNotif:()=>this.obGrant('notif'), onGrantAlarm:()=>this.obGrant('alarm'), onObContinue:()=>this.obContinue(),
+      // nav / tabs
+      platformSeg:[{label:'iOS',onTap:()=>this.setPlatform('ios'),...this.cseg(isIOS)},{label:'Android',onTap:()=>this.setPlatform('android'),...this.cseg(!isIOS)}],
+      themeSeg:[{label:'Light',onTap:()=>this.setTheme('light'),...this.cseg(!isDark)},{label:'Dark',onTap:()=>this.setTheme('dark'),...this.cseg(isDark)}],
+      navChips,
+      goHome:()=>this.setScreen('home'), goSettings:()=>this.setScreen('settings'), onFab:()=>this.openAdd(),
+      tabHomeStroke: (S.screen==='home'||S.screen==='empty')?'var(--ic-1)':'var(--ink-3)', tabHomeColor:(S.screen==='home'||S.screen==='empty')?'var(--ink)':'var(--ink-3)',
+      tabSetStroke: S.screen==='settings'?'var(--ic-1)':'var(--ink-3)', tabSetDot:S.screen==='settings'?'var(--ic-1)':'var(--ink-3)', tabSetColor:S.screen==='settings'?'var(--ink)':'var(--ink-3)',
+    };
+  }
+}
+</script>
+</body>
+</html>
