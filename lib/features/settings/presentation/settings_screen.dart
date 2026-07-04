@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -100,7 +101,23 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
                             () async {
                           await Permission.scheduleExactAlarm.request();
                           _load();
-                        }),
+                        }, divider: true),
+                        GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => const MethodChannel('takna/settings')
+                              .invokeMethod('openAlarmChannelSettings'),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 15, 16, 15),
+                            child: Row(children: [
+                              Icon(Icons.music_note_outlined, size: 20, color: t.ic1),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                  child: Text('Alarm sound',
+                                      style: body(14, FontWeight.w600, t.ink))),
+                              Icon(Icons.chevron_right, size: 18, color: t.ink3),
+                            ]),
+                          ),
+                        ),
                       ]),
                     ),
                   ),

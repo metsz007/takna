@@ -63,6 +63,17 @@ class NotificationService {
           handleForeground ? (r) => onForegroundResponse?.call(r) : null,
       onDidReceiveBackgroundNotificationResponse: notificationBackgroundHandler,
     );
+    // Create the channel up front so its system settings page (where the
+    // user picks the alarm sound) exists before the first alarm fires.
+    await _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(const AndroidNotificationChannel(
+          'takna_alarms',
+          'Alarms',
+          description: 'Reminder alarms that ring until dismissed',
+          importance: Importance.max,
+          audioAttributesUsage: AudioAttributesUsage.alarm,
+        ));
   }
 
   Future<String> _localTimeZoneName() async {
