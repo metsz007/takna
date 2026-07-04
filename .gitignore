@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Design tool cache
+design/.thumbnail
+
+# Android signing — never commit the release keystore
+*.jks
+*.keystore
+android/key.properties
