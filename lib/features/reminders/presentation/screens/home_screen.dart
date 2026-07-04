@@ -288,39 +288,51 @@ class _EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.tk;
-    return Column(children: [
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
       const _Header(),
-      const SizedBox(height: 96),
-      Container(
-        width: 104,
-        height: 104,
-        decoration: BoxDecoration(color: t.accentSoft, shape: BoxShape.circle),
-        child: Icon(Icons.schedule, size: 46, color: t.ic1),
-      ),
-      const SizedBox(height: 26),
-      Text('No reminders yet', style: body(20, FontWeight.w700, t.ink)),
-      const SizedBox(height: 9),
-      SizedBox(
-        width: 230,
-        child: Text(
-          'Add your first reminder and Takna will make sure it wakes you — on time, every time.',
-          textAlign: TextAlign.center,
-          style: body(13.5, FontWeight.w400, t.ink2, height: 1.55),
-        ),
-      ),
-      const SizedBox(height: 24),
-      GestureDetector(
-        onTap: () => context.push('/add'),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
-          decoration: BoxDecoration(
-            color: t.accent,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
-              BoxShadow(color: Color(0x99E0A43B), blurRadius: 22, offset: Offset(0, 10), spreadRadius: -6)
-            ],
-          ),
-          child: Text('Add a reminder', style: body(14, FontWeight.w700, t.onAccent)),
+      Expanded(
+        child: Center(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Container(
+              width: 104,
+              height: 104,
+              decoration:
+                  BoxDecoration(color: t.accentSoft, shape: BoxShape.circle),
+              child: Icon(Icons.schedule, size: 46, color: t.ic1),
+            ),
+            const SizedBox(height: 26),
+            Text('No reminders yet', style: body(20, FontWeight.w700, t.ink)),
+            const SizedBox(height: 9),
+            SizedBox(
+              width: 230,
+              child: Text(
+                'Add your first reminder and Takna will make sure it wakes you — on time, every time.',
+                textAlign: TextAlign.center,
+                style: body(13.5, FontWeight.w400, t.ink2, height: 1.55),
+              ),
+            ),
+            const SizedBox(height: 24),
+            GestureDetector(
+              onTap: () => context.push('/add'),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 26, vertical: 14),
+                decoration: BoxDecoration(
+                  color: t.accent,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                        color: Color(0x99E0A43B),
+                        blurRadius: 22,
+                        offset: Offset(0, 10),
+                        spreadRadius: -6)
+                  ],
+                ),
+                child: Text('Add a reminder',
+                    style: body(14, FontWeight.w700, t.onAccent)),
+              ),
+            ),
+          ]),
         ),
       ),
     ]);
