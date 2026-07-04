@@ -27,7 +27,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
   DateTime _date = DateTime.now().add(const Duration(hours: 1));
   String? _rrule;
   int _offset = 0;
-  int _snooze = 10;
+  int _snooze = 5;
   bool _loaded = false;
 
   bool get isEdit => widget.reminderId != null;
@@ -79,7 +79,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
     } else {
       final prefs = await SharedPreferences.getInstance();
       _offset = prefs.getInt('defaultOffset') ?? 0;
-      _snooze = prefs.getInt('defaultSnooze') ?? 10;
+      _snooze = prefs.getInt('defaultSnooze') ?? 5;
     }
     if (mounted) setState(() => _loaded = true);
   }

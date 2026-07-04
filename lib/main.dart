@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/router/router.dart';
+import 'core/scheduler/foreground_alarm_watcher.dart';
 import 'core/theme/theme.dart';
 import 'core/theme/wave_background.dart';
 import 'features/reminders/presentation/providers.dart';
@@ -38,6 +39,9 @@ Future<void> main() async {
   notifications.onForegroundResponse = (r) {
     if (r.actionId == null) app.router.go('/alarm', extra: r.payload);
   };
+  // Foreground firing: Android won't full-screen while the app is active,
+  // so a Dart timer takes the app to the alarm screen itself.
+  ForegroundAlarmWatcher(container, app.router).start();
   runApp(UncontrolledProviderScope(container: container, child: app));
 }
 

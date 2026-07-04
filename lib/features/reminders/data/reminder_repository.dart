@@ -21,6 +21,11 @@ class ReminderRepository {
     await _scheduler.reconcile();
   }
 
+  Future<void> snooze(String id, int minutes) async {
+    await _db.setSnoozedUntil(id, DateTime.now().add(Duration(minutes: minutes)));
+    await _scheduler.reconcile();
+  }
+
   Future<void> setEnabled(String id, bool enabled) async {
     final r = await _db.getById(id);
     if (r == null) return;

@@ -124,20 +124,28 @@ class _HomeList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.tk;
     final now = DateTime.now();
-    ({Reminder r, DateTime at})? hero;
-    final nextAt = <String, DateTime?>{};
+    ({Reminder r, DateTime at, bool snoozed})? hero;
+    final nextAt = <String, ({DateTime at, bool snoozed})?>{};
     for (final r in reminders) {
       final occ = nextOccurrences(r, now, 1);
-      final at = occ.isEmpty ? null : occ.first;
-      nextAt[r.id] = at;
-      if (r.isEnabled && at != null && (hero == null || at.isBefore(hero.at))) {
-        hero = (r: r, at: at);
+      final snooze = r.snoozedUntil;
+      // A pending snooze wins if it comes before the next regular occurrence.
+      ({DateTime at, bool snoozed})? next;
+      if (occ.isNotEmpty) next = (at: occ.first, snoozed: false);
+      if (snooze != null &&
+          snooze.isAfter(now) &&
+          (next == null || snooze.isBefore(next.at))) {
+        next = (at: snooze, snoozed: true);
+      }
+      nextAt[r.id] = next;
+      if (r.isEnabled && next != null && (hero == null || next.at.isBefore(hero.at))) {
+        hero = (r: r, at: next.at, snoozed: next.snoozed);
       }
     }
     final today = <Reminder>[];
     final upcoming = <Reminder>[];
     for (final r in reminders) {
-      final at = nextAt[r.id];
+      final at = nextAt[r.id]?.at;
       (at != null && DateUtils.isSameDay(at, now) ? today : upcoming).add(r);
     }
 
@@ -165,7 +173,7 @@ class _HomeList extends ConsumerWidget {
         if (hero != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: _HeroCard(hero.r, hero.at),
+            child: _HeroCard(hero.r, hero.at, hero.snoozed),
           ),
         if (today.isNotEmpty) section('Today', today),
         if (upcoming.isNotEmpty) section('Upcoming', upcoming),
@@ -175,9 +183,10 @@ class _HomeList extends ConsumerWidget {
 }
 
 class _HeroCard extends StatelessWidget {
-  const _HeroCard(this.reminder, this.at);
+  const _HeroCard(this.reminder, this.at, this.snoozed);
   final Reminder reminder;
   final DateTime at;
+  final bool snoozed;
 
   @override
   Widget build(BuildContext context) {
@@ -190,9 +199,10 @@ class _HeroCard extends StatelessWidget {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(children: [
             Expanded(
-                child: Text('NEXT REMINDER',
+                child: Text(snoozed ? 'SNOOZED' : 'NEXT REMINDER',
                     style: body(10, FontWeight.w700, t.accent, spacing: 1.5))),
-            TkBadge(recurrenceLabel(reminder.rruleString), filled: true),
+            TkBadge(snoozed ? 'Snoozed' : recurrenceLabel(reminder.rruleString),
+                filled: true),
           ]),
           const SizedBox(height: 13),
           Text(reminder.title, style: body(19, FontWeight.w700, t.heroInk)),
@@ -242,14 +252,15 @@ class _HeroCard extends StatelessWidget {
 }
 
 class _ReminderRow extends ConsumerWidget {
-  const _ReminderRow(this.reminder, this.nextAt);
+  const _ReminderRow(this.reminder, this.next);
   final Reminder reminder;
-  final DateTime? nextAt;
+  final ({DateTime at, bool snoozed})? next;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.tk;
-    final at = nextAt;
+    final at = next?.at;
+    final snoozed = next?.snoozed ?? false;
     final when = at == null
         ? 'No upcoming'
         : DateUtils.isSameDay(at, DateTime.now())
@@ -259,7 +270,7 @@ class _ReminderRow extends ConsumerWidget {
       onTap: () => context.push('/detail/${reminder.id}'),
       padding: const EdgeInsets.fromLTRB(13, 12, 13, 12),
       child: Row(children: [
-        const TkIconBox(icon: Icons.notifications_outlined),
+        TkIconBox(icon: snoozed ? Icons.snooze : Icons.notifications_outlined),
         const SizedBox(width: 12),
         Expanded(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -269,6 +280,10 @@ class _ReminderRow extends ConsumerWidget {
             Row(children: [
               Flexible(child: Text(when, style: display(12, FontWeight.w600, t.ink2))),
               const SizedBox(width: 7),
+              if (snoozed) ...[
+                const TkBadge('Snoozed', filled: true),
+                const SizedBox(width: 5),
+              ],
               TkBadge(recurrenceLabel(reminder.rruleString)),
             ]),
           ]),

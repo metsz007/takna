@@ -4,6 +4,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../database/database.dart';
+import '../scheduler/scheduler.dart';
+
 const snoozeActionId = 'snooze';
 const dismissActionId = 'dismiss';
 
@@ -26,25 +29,35 @@ final _channel = AndroidNotificationDetails(
   ],
 );
 
-/// Payload format: "notificationId|snoozeMinutes|title".
-({int id, int snoozeMinutes, String title}) parsePayload(String? payload) {
+/// Payload format: "notificationId|snoozeMinutes|reminderId|title".
+({int id, int snoozeMinutes, String reminderId, String title}) parsePayload(
+    String? payload) {
   final parts = (payload ?? '').split('|');
   return (
     id: parts.isNotEmpty ? int.tryParse(parts[0]) ?? 0 : 0,
-    snoozeMinutes: parts.length > 1 ? int.tryParse(parts[1]) ?? 10 : 10,
-    title: parts.length > 2 ? parts.sublist(2).join('|') : 'Reminder',
+    snoozeMinutes: parts.length > 1 ? int.tryParse(parts[1]) ?? 5 : 5,
+    reminderId: parts.length > 2 ? parts[2] : '',
+    title: parts.length > 3 ? parts.sublist(3).join('|') : 'Reminder',
   );
 }
 
 /// Handles Snooze taps while the app is dead. Runs in a background isolate,
-/// so it bootstraps its own plugin instance.
+/// so it bootstraps its own plugin/database instances. The snooze is
+/// persisted on the reminder so the UI shows it and it survives reboots.
 @pragma('vm:entry-point')
 void notificationBackgroundHandler(NotificationResponse response) async {
   if (response.actionId != snoozeActionId) return;
   final p = parsePayload(response.payload);
   final service = NotificationService();
   await service.init(handleForeground: false);
-  await service.scheduleSnooze(p.title, p.snoozeMinutes);
+  final db = AppDatabase();
+  try {
+    await db.setSnoozedUntil(
+        p.reminderId, DateTime.now().add(Duration(minutes: p.snoozeMinutes)));
+    await Scheduler(db, service).reconcile();
+  } finally {
+    await db.close();
+  }
 }
 
 class NotificationService {
@@ -124,6 +137,7 @@ class NotificationService {
     String? body,
     required DateTime when,
     required int snoozeMinutes,
+    required String reminderId,
   }) =>
       _plugin.zonedSchedule(
         id: id,
@@ -136,14 +150,6 @@ class NotificationService {
               interruptionLevel: InterruptionLevel.timeSensitive),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        payload: '$id|$snoozeMinutes|$title',
-      );
-
-  Future<void> scheduleSnooze(String title, int minutes) => schedule(
-        id: DateTime.now().millisecondsSinceEpoch & 0x7fffffff,
-        title: title,
-        body: 'Snoozed reminder',
-        when: DateTime.now().add(Duration(minutes: minutes)),
-        snoozeMinutes: minutes,
+        payload: '$id|$snoozeMinutes|$reminderId|$title',
       );
 }

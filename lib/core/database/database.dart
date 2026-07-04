@@ -13,6 +13,7 @@ class Reminders extends Table {
   IntColumn get offsetMinutes => integer().withDefault(const Constant(0))();
   IntColumn get snoozeMinutes => integer().withDefault(const Constant(10))();
   BoolColumn get isEnabled => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get snoozedUntil => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -22,11 +23,23 @@ class Reminders extends Table {
 
 @DriftDatabase(tables: [Reminders])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(driftDatabase(name: 'takna'));
+  // shareAcrossIsolates: the notification background isolate (snooze from
+  // the shade) writes to the same DB while the app may be running.
+  AppDatabase()
+      : super(driftDatabase(
+            name: 'takna',
+            native: const DriftNativeOptions(shareAcrossIsolates: true)));
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) await m.addColumn(reminders, reminders.snoozedUntil);
+        },
+      );
 
   Stream<List<Reminder>> watchAll() => (select(reminders)
         ..orderBy([(t) => OrderingTerm.asc(t.startDateTime)]))
@@ -42,4 +55,8 @@ class AppDatabase extends _$AppDatabase {
 
   Future<void> deleteById(String id) =>
       (delete(reminders)..where((t) => t.id.equals(id))).go();
+
+  Future<void> setSnoozedUntil(String id, DateTime? until) =>
+      (update(reminders)..where((t) => t.id.equals(id)))
+          .write(RemindersCompanion(snoozedUntil: Value(until)));
 }

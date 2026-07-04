@@ -33,6 +33,10 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
     // ourselves until Snooze/Dismiss is pressed.
     final p = parsePayload(widget.payload);
     ref.read(notificationServiceProvider).cancel(p.id);
+    // The OS notification may post a beat after we open (foreground-watcher
+    // race) — cancel again once it has had time to appear.
+    Timer(const Duration(seconds: 2),
+        () => ref.read(notificationServiceProvider).cancel(p.id));
     _native.invokeMethod('playAlarm');
   }
 
@@ -51,7 +55,9 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
   Future<void> _snooze() async {
     final p = parsePayload(widget.payload);
     await _native.invokeMethod('stopAlarm');
-    await ref.read(notificationServiceProvider).scheduleSnooze(p.title, p.snoozeMinutes);
+    await ref
+        .read(reminderRepositoryProvider)
+        .snooze(p.reminderId, p.snoozeMinutes);
     if (mounted) context.go('/');
   }
 

@@ -76,7 +76,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
                         const SizedBox(height: 10),
                         TkSegmented<int>(
                           options: const [5, 10, 15, 30],
-                          value: prefs.getInt('defaultSnooze') ?? 10,
+                          value: prefs.getInt('defaultSnooze') ?? 5,
                           labelOf: (v) => '$v min',
                           onChanged: (v) async {
                             await prefs.setInt('defaultSnooze', v);
