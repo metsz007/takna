@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -20,31 +21,37 @@ class AlarmScreen extends ConsumerStatefulWidget {
 }
 
 class _AlarmScreenState extends ConsumerState<AlarmScreen> {
+  static const _native = MethodChannel('takna/settings');
   late Timer _tick;
 
   @override
   void initState() {
     super.initState();
     _tick = Timer.periodic(const Duration(seconds: 1), (_) => setState(() {}));
+    // Take over the ringing: cancel the notification (whose sound Android
+    // stops as soon as the shade is opened) and loop the alarm sound
+    // ourselves until Snooze/Dismiss is pressed.
+    final p = parsePayload(widget.payload);
+    ref.read(notificationServiceProvider).cancel(p.id);
+    _native.invokeMethod('playAlarm');
   }
 
   @override
   void dispose() {
+    _native.invokeMethod('stopAlarm');
     _tick.cancel();
     super.dispose();
   }
 
   Future<void> _dismiss() async {
-    final p = parsePayload(widget.payload);
-    await ref.read(notificationServiceProvider).cancel(p.id);
+    await _native.invokeMethod('stopAlarm');
     if (mounted) context.go('/');
   }
 
   Future<void> _snooze() async {
     final p = parsePayload(widget.payload);
-    final service = ref.read(notificationServiceProvider);
-    await service.cancel(p.id);
-    await service.scheduleSnooze(p.title, p.snoozeMinutes);
+    await _native.invokeMethod('stopAlarm');
+    await ref.read(notificationServiceProvider).scheduleSnooze(p.title, p.snoozeMinutes);
     if (mounted) context.go('/');
   }
 
