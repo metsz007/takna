@@ -256,9 +256,11 @@ class _HeroCard extends StatelessWidget {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                  reliable
-                      ? 'Alarm set · notifies even when your phone is locked'
-                      : 'Alarm set · may not ring until you fix permissions',
+                  !reliable
+                      ? 'Alarm set · may not ring until you fix permissions'
+                      : reminder.isAlarm
+                          ? 'Alarm set · notifies even when your phone is locked'
+                          : 'Notification set · sounds once at the scheduled time',
                   style: body(11, FontWeight.w500, t.heroSub)),
             ),
           ]),
