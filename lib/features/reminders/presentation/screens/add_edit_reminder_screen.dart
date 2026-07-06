@@ -14,8 +14,11 @@ import '../providers.dart';
 import '../widgets/recurrence_sheet.dart';
 
 class AddEditReminderScreen extends ConsumerStatefulWidget {
-  const AddEditReminderScreen({super.key, this.reminderId});
+  const AddEditReminderScreen({super.key, this.reminderId, this.copyFromId});
   final String? reminderId;
+  // Seed the form from an existing reminder while staying in create mode (new
+  // uuid, fresh timestamps, un-snoozed). Only used when reminderId is null.
+  final String? copyFromId;
 
   @override
   ConsumerState<AddEditReminderScreen> createState() => _AddEditState();
@@ -75,27 +78,38 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
   }
 
   Future<void> _load() async {
-    if (isEdit) {
-      final r = await ref.read(reminderRepositoryProvider).getById(widget.reminderId!);
-      if (r != null) {
-        _title.text = r.title;
-        _notes.text = r.notes ?? '';
-        _date = r.startDateTime;
-        _rrule = r.rruleString;
-        _offset = r.offsetMinutes;
-        _snooze = r.snoozeMinutes;
-        _isAlarm = r.isAlarm;
-        _isEnabled = r.isEnabled;
-        _createdAt = r.createdAt;
-        _loadedDate = r.startDateTime;
-        _loadedRrule = r.rruleString;
-      }
+    // The row to seed from: the edited reminder, or the copy source. Both go
+    // through getById; only edit mode also carries over the identity fields.
+    final sourceId = widget.reminderId ?? widget.copyFromId;
+    if (sourceId != null) {
+      final r = await ref.read(reminderRepositoryProvider).getById(sourceId);
+      if (r != null) _fillFrom(r, asCopy: !isEdit);
     } else {
       final prefs = await SharedPreferences.getInstance();
       _offset = prefs.getInt('defaultOffset') ?? 0;
       _snooze = prefs.getInt('defaultSnooze') ?? 5;
     }
     if (mounted) setState(() => _loaded = true);
+  }
+
+  /// Copies the editable fields from [r]. For an edit (`asCopy: false`) it also
+  /// carries the identity fields (createdAt, isEnabled, loaded schedule) so the
+  /// save updates in place; for a copy those stay at create-mode defaults so
+  /// _save mints a fresh reminder — new uuid, fresh timestamps, un-snoozed.
+  void _fillFrom(Reminder r, {required bool asCopy}) {
+    _title.text = r.title;
+    _notes.text = r.notes ?? '';
+    _date = r.startDateTime;
+    _rrule = r.rruleString;
+    _offset = r.offsetMinutes;
+    _snooze = r.snoozeMinutes;
+    _isAlarm = r.isAlarm;
+    if (!asCopy) {
+      _isEnabled = r.isEnabled;
+      _createdAt = r.createdAt;
+      _loadedDate = r.startDateTime;
+      _loadedRrule = r.rruleString;
+    }
   }
 
   Future<void> _save() async {

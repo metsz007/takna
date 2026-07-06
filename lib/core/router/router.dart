@@ -87,8 +87,10 @@ GoRouter buildRouter({required bool onboarded}) => GoRouter(
             pageBuilder: (_, s) => _fadePage(s, const OnboardingScreen())),
         GoRoute(
             path: '/add',
-            pageBuilder: (_, s) =>
-                _fadePage(s, const AddEditReminderScreen(), slide: true)),
+            pageBuilder: (_, s) => _fadePage(
+                s,
+                AddEditReminderScreen(copyFromId: s.uri.queryParameters['copy']),
+                slide: true)),
         GoRoute(
             path: '/edit/:id',
             pageBuilder: (_, s) => _fadePage(

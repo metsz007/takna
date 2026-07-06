@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 verified-by:
   - test/duplicate_reminder_test.dart
 ---

@@ -49,6 +49,11 @@ class ReminderDetailScreen extends ConsumerWidget {
                     TkIconButton(icon: Icons.arrow_back_ios_new, onTap: () => context.pop()),
                     const Spacer(),
                     TkIconButton(
+                      icon: Icons.control_point_duplicate,
+                      onTap: () => context.push('/add?copy=$reminderId'),
+                    ),
+                    const SizedBox(width: 9),
+                    TkIconButton(
                       icon: Icons.delete_outline,
                       onTap: () async {
                         final ok = await showDialog<bool>(
