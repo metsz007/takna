@@ -33,7 +33,15 @@ class ReminderDetailScreen extends ConsumerWidget {
                 style: body(14, FontWeight.w600, t.ink2))),
           data: (r) {
             if (r == null) return const Center(child: Text('Reminder not found'));
-            final next5 = nextOccurrences(r, DateTime.now(), 5);
+            final now = DateTime.now();
+            final next5 = nextOccurrences(r, now, 5);
+            // A pending snooze wins if it comes before the next regular
+            // occurrence (mirrors _HomeList). Occurrence list below stays RRULE.
+            final snooze = r.snoozedUntil;
+            final snoozed = snooze != null &&
+                snooze.isAfter(now) &&
+                (next5.isEmpty || snooze.isBefore(next5.first));
+            final nextFire = snoozed ? snooze : (next5.isEmpty ? null : next5.first);
             return ListView(
               padding: const EdgeInsets.only(bottom: 40),
               children: [
@@ -107,19 +115,20 @@ class ReminderDetailScreen extends ConsumerWidget {
                     radius: 22,
                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
                     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Text('NEXT ALARM', style: body(10, FontWeight.w700, t.accent, spacing: 1.4)),
+                      Text(snoozed ? 'SNOOZED' : 'NEXT ALARM',
+                          style: body(10, FontWeight.w700, t.accent, spacing: 1.4)),
                       const SizedBox(height: 8),
-                      next5.isEmpty
+                      nextFire == null
                           ? Text('No upcoming occurrences',
                               style: body(15, FontWeight.w700, t.heroInk))
                           : Row(
                               crossAxisAlignment: CrossAxisAlignment.baseline,
                               textBaseline: TextBaseline.alphabetic,
                               children: [
-                                Text(_dayLabel(next5.first),
+                                Text(_dayLabel(nextFire),
                                     style: body(15, FontWeight.w700, t.heroInk)),
                                 const SizedBox(width: 8),
-                                Text(DateFormat('h:mm a').format(next5.first),
+                                Text(DateFormat('h:mm a').format(nextFire),
                                     style:
                                         display(30, FontWeight.w700, Colors.white, spacing: -.5)),
                               ],
