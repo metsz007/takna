@@ -16,6 +16,9 @@ class Reminders extends Table {
   BoolColumn get isEnabled => boolean().withDefault(const Constant(true))();
   BoolColumn get isAlarm => boolean().withDefault(const Constant(true))();
   DateTimeColumn get snoozedUntil => dateTime().nullable()();
+  // JSON array of millisecondsSinceEpoch ints, one per skipped occurrence.
+  // Null = no skips. User input (an explicit skip), not derived data.
+  TextColumn get skippedDates => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -46,7 +49,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -54,6 +57,7 @@ class AppDatabase extends _$AppDatabase {
           if (from < 2) await m.addColumn(reminders, reminders.snoozedUntil);
           if (from < 3) await m.addColumn(reminders, reminders.isAlarm);
           if (from < 4) await m.createTable(firedEvents);
+          if (from < 5) await m.addColumn(reminders, reminders.skippedDates);
         },
       );
 

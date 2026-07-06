@@ -139,6 +139,40 @@ class ReminderDetailScreen extends ConsumerWidget {
                     ]),
                   ),
                 ),
+                if (r.rruleString != null && nextFire != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                    child: GestureDetector(
+                      onTap: () async {
+                        final repo = ref.read(reminderRepositoryProvider);
+                        final skipped = await repo.skipNext(reminderId);
+                        if (skipped != null && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content: Text(
+                                'Skipped ${DateFormat('EEE, MMM d').format(skipped)}'),
+                            action: SnackBarAction(
+                              label: 'Undo',
+                              onPressed: () => repo.unskip(reminderId, skipped),
+                            ),
+                          ));
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: t.surface,
+                          border: Border.all(color: t.line),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(children: [
+                          Icon(Icons.event_busy, size: 16, color: t.ink2),
+                          const SizedBox(width: 9),
+                          Text('Skip next occurrence',
+                              style: body(13, FontWeight.w700, t.ink)),
+                        ]),
+                      ),
+                    ),
+                  ),
                 ...() {
                   final last = ref.watch(lastFiredProvider(reminderId)).asData?.value;
                   if (last == null) return const <Widget>[];

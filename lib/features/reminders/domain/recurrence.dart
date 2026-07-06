@@ -1,6 +1,16 @@
+import 'dart:convert';
+
 import 'package:rrule/rrule.dart';
 
 import '../../../core/database/database.dart';
+
+/// User-chosen occurrence instants to exclude (epoch millis of the wall-time
+/// value nextOccurrences emits). Not derived data — explicit user input, like
+/// snoozedUntil.
+Set<int> decodeSkips(String? raw) =>
+    raw == null ? {} : {for (final v in jsonDecode(raw) as List) v as int};
+
+String encodeSkips(Set<int> skips) => jsonEncode(skips.toList());
 
 /// Expands a reminder into its next [count] occurrence times (local wall
 /// time), starting strictly after [after]. One-time reminders yield their
@@ -19,10 +29,12 @@ List<DateTime> nextOccurrences(Reminder r, DateTime after, int count) {
   final startUtc = DateTime.utc(s.year, s.month, s.day, s.hour, s.minute);
   final a = after;
   final afterUtc = DateTime.utc(a.year, a.month, a.day, a.hour, a.minute, a.second);
+  final skips = decodeSkips(r.skippedDates);
   return rule
       .getInstances(start: startUtc, after: afterUtc)
-      .take(count)
       .map((d) => DateTime(d.year, d.month, d.day, d.hour, d.minute))
+      .where((d) => !skips.contains(d.millisecondsSinceEpoch))
+      .take(count)
       .toList();
 }
 

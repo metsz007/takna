@@ -135,6 +135,17 @@ class $RemindersTable extends Reminders
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _skippedDatesMeta = const VerificationMeta(
+    'skippedDates',
+  );
+  @override
+  late final GeneratedColumn<String> skippedDates = GeneratedColumn<String>(
+    'skipped_dates',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -170,6 +181,7 @@ class $RemindersTable extends Reminders
     isEnabled,
     isAlarm,
     snoozedUntil,
+    skippedDates,
     createdAt,
     updatedAt,
   ];
@@ -271,6 +283,15 @@ class $RemindersTable extends Reminders
         ),
       );
     }
+    if (data.containsKey('skipped_dates')) {
+      context.handle(
+        _skippedDatesMeta,
+        skippedDates.isAcceptableOrUnknown(
+          data['skipped_dates']!,
+          _skippedDatesMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -340,6 +361,10 @@ class $RemindersTable extends Reminders
         DriftSqlType.dateTime,
         data['${effectivePrefix}snoozed_until'],
       ),
+      skippedDates: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}skipped_dates'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -369,6 +394,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
   final bool isEnabled;
   final bool isAlarm;
   final DateTime? snoozedUntil;
+  final String? skippedDates;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Reminder({
@@ -383,6 +409,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     required this.isEnabled,
     required this.isAlarm,
     this.snoozedUntil,
+    this.skippedDates,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -405,6 +432,9 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     map['is_alarm'] = Variable<bool>(isAlarm);
     if (!nullToAbsent || snoozedUntil != null) {
       map['snoozed_until'] = Variable<DateTime>(snoozedUntil);
+    }
+    if (!nullToAbsent || skippedDates != null) {
+      map['skipped_dates'] = Variable<String>(skippedDates);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -430,6 +460,9 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       snoozedUntil: snoozedUntil == null && nullToAbsent
           ? const Value.absent()
           : Value(snoozedUntil),
+      skippedDates: skippedDates == null && nullToAbsent
+          ? const Value.absent()
+          : Value(skippedDates),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -452,6 +485,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       isEnabled: serializer.fromJson<bool>(json['isEnabled']),
       isAlarm: serializer.fromJson<bool>(json['isAlarm']),
       snoozedUntil: serializer.fromJson<DateTime?>(json['snoozedUntil']),
+      skippedDates: serializer.fromJson<String?>(json['skippedDates']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -471,6 +505,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       'isEnabled': serializer.toJson<bool>(isEnabled),
       'isAlarm': serializer.toJson<bool>(isAlarm),
       'snoozedUntil': serializer.toJson<DateTime?>(snoozedUntil),
+      'skippedDates': serializer.toJson<String?>(skippedDates),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -488,6 +523,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     bool? isEnabled,
     bool? isAlarm,
     Value<DateTime?> snoozedUntil = const Value.absent(),
+    Value<String?> skippedDates = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Reminder(
@@ -502,6 +538,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     isEnabled: isEnabled ?? this.isEnabled,
     isAlarm: isAlarm ?? this.isAlarm,
     snoozedUntil: snoozedUntil.present ? snoozedUntil.value : this.snoozedUntil,
+    skippedDates: skippedDates.present ? skippedDates.value : this.skippedDates,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -528,6 +565,9 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       snoozedUntil: data.snoozedUntil.present
           ? data.snoozedUntil.value
           : this.snoozedUntil,
+      skippedDates: data.skippedDates.present
+          ? data.skippedDates.value
+          : this.skippedDates,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -547,6 +587,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           ..write('isEnabled: $isEnabled, ')
           ..write('isAlarm: $isAlarm, ')
           ..write('snoozedUntil: $snoozedUntil, ')
+          ..write('skippedDates: $skippedDates, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -566,6 +607,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     isEnabled,
     isAlarm,
     snoozedUntil,
+    skippedDates,
     createdAt,
     updatedAt,
   );
@@ -584,6 +626,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           other.isEnabled == this.isEnabled &&
           other.isAlarm == this.isAlarm &&
           other.snoozedUntil == this.snoozedUntil &&
+          other.skippedDates == this.skippedDates &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -600,6 +643,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
   final Value<bool> isEnabled;
   final Value<bool> isAlarm;
   final Value<DateTime?> snoozedUntil;
+  final Value<String?> skippedDates;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -615,6 +659,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     this.isEnabled = const Value.absent(),
     this.isAlarm = const Value.absent(),
     this.snoozedUntil = const Value.absent(),
+    this.skippedDates = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -631,6 +676,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     this.isEnabled = const Value.absent(),
     this.isAlarm = const Value.absent(),
     this.snoozedUntil = const Value.absent(),
+    this.skippedDates = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -652,6 +698,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     Expression<bool>? isEnabled,
     Expression<bool>? isAlarm,
     Expression<DateTime>? snoozedUntil,
+    Expression<String>? skippedDates,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -668,6 +715,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
       if (isEnabled != null) 'is_enabled': isEnabled,
       if (isAlarm != null) 'is_alarm': isAlarm,
       if (snoozedUntil != null) 'snoozed_until': snoozedUntil,
+      if (skippedDates != null) 'skipped_dates': skippedDates,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -686,6 +734,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     Value<bool>? isEnabled,
     Value<bool>? isAlarm,
     Value<DateTime?>? snoozedUntil,
+    Value<String?>? skippedDates,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -702,6 +751,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
       isEnabled: isEnabled ?? this.isEnabled,
       isAlarm: isAlarm ?? this.isAlarm,
       snoozedUntil: snoozedUntil ?? this.snoozedUntil,
+      skippedDates: skippedDates ?? this.skippedDates,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -744,6 +794,9 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     if (snoozedUntil.present) {
       map['snoozed_until'] = Variable<DateTime>(snoozedUntil.value);
     }
+    if (skippedDates.present) {
+      map['skipped_dates'] = Variable<String>(skippedDates.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -770,6 +823,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
           ..write('isEnabled: $isEnabled, ')
           ..write('isAlarm: $isAlarm, ')
           ..write('snoozedUntil: $snoozedUntil, ')
+          ..write('skippedDates: $skippedDates, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -1147,6 +1201,7 @@ typedef $$RemindersTableCreateCompanionBuilder =
       Value<bool> isEnabled,
       Value<bool> isAlarm,
       Value<DateTime?> snoozedUntil,
+      Value<String?> skippedDates,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -1164,6 +1219,7 @@ typedef $$RemindersTableUpdateCompanionBuilder =
       Value<bool> isEnabled,
       Value<bool> isAlarm,
       Value<DateTime?> snoozedUntil,
+      Value<String?> skippedDates,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -1230,6 +1286,11 @@ class $$RemindersTableFilterComposer
 
   ColumnFilters<DateTime> get snoozedUntil => $composableBuilder(
     column: $table.snoozedUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get skippedDates => $composableBuilder(
+    column: $table.skippedDates,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1308,6 +1369,11 @@ class $$RemindersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get skippedDates => $composableBuilder(
+    column: $table.skippedDates,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -1371,6 +1437,11 @@ class $$RemindersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get skippedDates => $composableBuilder(
+    column: $table.skippedDates,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -1417,6 +1488,7 @@ class $$RemindersTableTableManager
                 Value<bool> isEnabled = const Value.absent(),
                 Value<bool> isAlarm = const Value.absent(),
                 Value<DateTime?> snoozedUntil = const Value.absent(),
+                Value<String?> skippedDates = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -1432,6 +1504,7 @@ class $$RemindersTableTableManager
                 isEnabled: isEnabled,
                 isAlarm: isAlarm,
                 snoozedUntil: snoozedUntil,
+                skippedDates: skippedDates,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -1449,6 +1522,7 @@ class $$RemindersTableTableManager
                 Value<bool> isEnabled = const Value.absent(),
                 Value<bool> isAlarm = const Value.absent(),
                 Value<DateTime?> snoozedUntil = const Value.absent(),
+                Value<String?> skippedDates = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -1464,6 +1538,7 @@ class $$RemindersTableTableManager
                 isEnabled: isEnabled,
                 isAlarm: isAlarm,
                 snoozedUntil: snoozedUntil,
+                skippedDates: skippedDates,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
