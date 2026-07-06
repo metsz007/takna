@@ -14,7 +14,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
   ConsumerState<SettingsScreen> createState() => _SettingsState();
 }
 
-class _SettingsState extends ConsumerState<SettingsScreen> {
+class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingObserver {
   SharedPreferences? _prefs;
   bool _notifGranted = false;
   bool _exactGranted = false;
@@ -23,7 +23,20 @@ class _SettingsState extends ConsumerState<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Permissions may have been changed in the system settings app; refresh.
+    if (state == AppLifecycleState.resumed) _load();
   }
 
   Future<void> _load() async {
