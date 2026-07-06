@@ -88,6 +88,7 @@ class Scheduler {
         snoozeMinutes: o.r.snoozeMinutes,
         reminderId: o.r.id,
         isAlarm: o.r.isAlarm,
+        soundKey: o.r.soundKey,
       );
     }
   }

@@ -7,6 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../database/database.dart';
 import '../scheduler/scheduler.dart';
+import 'sounds.dart';
 
 const snoozeActionId = 'snooze';
 const dismissActionId = 'dismiss';
@@ -219,6 +220,7 @@ class NotificationService {
     required int snoozeMinutes,
     required String reminderId,
     bool isAlarm = true,
+    String? soundKey,
   }) =>
       _plugin.zonedSchedule(
         id: id,
@@ -227,7 +229,10 @@ class NotificationService {
         scheduledDate: tz.TZDateTime.from(when, tz.local),
         notificationDetails: NotificationDetails(
           android: isAlarm ? _channel : _notifChannel,
+          // null (system default or unknown key) → the framework default sound,
+          // i.e. no behavior change for existing reminders.
           iOS: DarwinNotificationDetails(
+              sound: iosSoundFor(soundKey),
               interruptionLevel: isAlarm
                   ? InterruptionLevel.timeSensitive
                   : InterruptionLevel.active),

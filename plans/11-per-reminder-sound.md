@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 verified-by:
   - test/reminder_sound_test.dart
   - test/scheduler_test.dart

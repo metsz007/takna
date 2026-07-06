@@ -8,6 +8,7 @@ import 'package:takna/core/scheduler/scheduler.dart';
 class _FakeNotifications extends NotificationService {
   final scheduled = <String>[]; // reminderIds scheduled
   final whens = <DateTime>[]; // fire time of each scheduled occurrence
+  final soundKeys = <String, String?>{}; // reminderId → forwarded soundKey
   int cancelAllCount = 0;
 
   @override
@@ -22,9 +23,11 @@ class _FakeNotifications extends NotificationService {
     required int snoozeMinutes,
     required String reminderId,
     bool isAlarm = true,
+    String? soundKey,
   }) async {
     scheduled.add(reminderId);
     whens.add(when);
+    soundKeys[reminderId] = soundKey;
   }
 }
 
@@ -45,6 +48,7 @@ class _OrderFakeNotifications extends NotificationService {
     required int snoozeMinutes,
     required String reminderId,
     bool isAlarm = true,
+    String? soundKey,
   }) async {
     // A real async gap per schedule: without serialization it lets a second
     // reconcile's getEnabled()/cancelAll slip in between these calls.
@@ -59,6 +63,7 @@ Reminder _r({
   required DateTime start,
   DateTime? snoozedUntil,
   int offset = 0,
+  String? soundKey,
 }) =>
     Reminder(
       id: id,
@@ -72,6 +77,7 @@ Reminder _r({
       isEnabled: true,
       isAlarm: true,
       snoozedUntil: snoozedUntil,
+      soundKey: soundKey,
       createdAt: start,
       updatedAt: start,
     );
@@ -188,6 +194,21 @@ void main() {
     await db.setPausedUntil(null); // Resume
     await scheduler.reconcile();
     expect(notifications.scheduled, contains('r'));
+  });
+
+  test('soundKey is forwarded to schedule()', () async {
+    await db.upsert(_r(id: 'snd', start: future, soundKey: 'chime'));
+    await scheduler.reconcile();
+
+    expect(notifications.soundKeys['snd'], 'chime');
+  });
+
+  test('null soundKey is forwarded to schedule()', () async {
+    await db.upsert(_r(id: 'dflt', start: future));
+    await scheduler.reconcile();
+
+    expect(notifications.scheduled, contains('dflt'));
+    expect(notifications.soundKeys['dflt'], isNull);
   });
 
   test('concurrent reconcile() calls are serialized (no interleave)', () async {

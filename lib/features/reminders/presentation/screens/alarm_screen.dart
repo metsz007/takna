@@ -51,11 +51,12 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
     // race) — cancel again once it has had time to appear.
     Timer(const Duration(seconds: 2),
         () => ref.read(notificationServiceProvider).cancel(p.id));
-    _native.invokeMethod('playAlarm');
-    // Ring-screen-only lookup of the dismiss challenge (same repo seam plan 11
-    // uses for soundKey). A deleted/missing reminder leaves _challenge null →
-    // no gate (fail open toward being able to dismiss, never toward trapping).
+    // Ring-screen-only lookup: rings with the reminder's chosen soundKey and
+    // reads its dismiss challenge in one fetch. A deleted/missing reminder →
+    // sound null (default alarm) and _challenge null → no gate (fail open
+    // toward being able to dismiss, never toward trapping).
     ref.read(reminderRepositoryProvider).getById(p.reminderId).then((r) {
+      _native.invokeMethod('playAlarm', {'sound': r?.soundKey});
       if (mounted) setState(() => _challenge = r?.challenge);
     });
   }

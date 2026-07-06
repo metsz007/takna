@@ -166,6 +166,17 @@ class $RemindersTable extends Reminders
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _soundKeyMeta = const VerificationMeta(
+    'soundKey',
+  );
+  @override
+  late final GeneratedColumn<String> soundKey = GeneratedColumn<String>(
+    'sound_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -204,6 +215,7 @@ class $RemindersTable extends Reminders
     skippedDates,
     tag,
     challenge,
+    soundKey,
     createdAt,
     updatedAt,
   ];
@@ -326,6 +338,12 @@ class $RemindersTable extends Reminders
         challenge.isAcceptableOrUnknown(data['challenge']!, _challengeMeta),
       );
     }
+    if (data.containsKey('sound_key')) {
+      context.handle(
+        _soundKeyMeta,
+        soundKey.isAcceptableOrUnknown(data['sound_key']!, _soundKeyMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -407,6 +425,10 @@ class $RemindersTable extends Reminders
         DriftSqlType.string,
         data['${effectivePrefix}challenge'],
       ),
+      soundKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sound_key'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -439,6 +461,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
   final String? skippedDates;
   final String? tag;
   final String? challenge;
+  final String? soundKey;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Reminder({
@@ -456,6 +479,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     this.skippedDates,
     this.tag,
     this.challenge,
+    this.soundKey,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -488,6 +512,9 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     if (!nullToAbsent || challenge != null) {
       map['challenge'] = Variable<String>(challenge);
     }
+    if (!nullToAbsent || soundKey != null) {
+      map['sound_key'] = Variable<String>(soundKey);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -519,6 +546,9 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       challenge: challenge == null && nullToAbsent
           ? const Value.absent()
           : Value(challenge),
+      soundKey: soundKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(soundKey),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -544,6 +574,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       skippedDates: serializer.fromJson<String?>(json['skippedDates']),
       tag: serializer.fromJson<String?>(json['tag']),
       challenge: serializer.fromJson<String?>(json['challenge']),
+      soundKey: serializer.fromJson<String?>(json['soundKey']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -566,6 +597,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       'skippedDates': serializer.toJson<String?>(skippedDates),
       'tag': serializer.toJson<String?>(tag),
       'challenge': serializer.toJson<String?>(challenge),
+      'soundKey': serializer.toJson<String?>(soundKey),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -586,6 +618,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     Value<String?> skippedDates = const Value.absent(),
     Value<String?> tag = const Value.absent(),
     Value<String?> challenge = const Value.absent(),
+    Value<String?> soundKey = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Reminder(
@@ -603,6 +636,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     skippedDates: skippedDates.present ? skippedDates.value : this.skippedDates,
     tag: tag.present ? tag.value : this.tag,
     challenge: challenge.present ? challenge.value : this.challenge,
+    soundKey: soundKey.present ? soundKey.value : this.soundKey,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -634,6 +668,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           : this.skippedDates,
       tag: data.tag.present ? data.tag.value : this.tag,
       challenge: data.challenge.present ? data.challenge.value : this.challenge,
+      soundKey: data.soundKey.present ? data.soundKey.value : this.soundKey,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -656,6 +691,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           ..write('skippedDates: $skippedDates, ')
           ..write('tag: $tag, ')
           ..write('challenge: $challenge, ')
+          ..write('soundKey: $soundKey, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -678,6 +714,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     skippedDates,
     tag,
     challenge,
+    soundKey,
     createdAt,
     updatedAt,
   );
@@ -699,6 +736,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           other.skippedDates == this.skippedDates &&
           other.tag == this.tag &&
           other.challenge == this.challenge &&
+          other.soundKey == this.soundKey &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -718,6 +756,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
   final Value<String?> skippedDates;
   final Value<String?> tag;
   final Value<String?> challenge;
+  final Value<String?> soundKey;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -736,6 +775,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     this.skippedDates = const Value.absent(),
     this.tag = const Value.absent(),
     this.challenge = const Value.absent(),
+    this.soundKey = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -755,6 +795,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     this.skippedDates = const Value.absent(),
     this.tag = const Value.absent(),
     this.challenge = const Value.absent(),
+    this.soundKey = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -779,6 +820,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     Expression<String>? skippedDates,
     Expression<String>? tag,
     Expression<String>? challenge,
+    Expression<String>? soundKey,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -798,6 +840,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
       if (skippedDates != null) 'skipped_dates': skippedDates,
       if (tag != null) 'tag': tag,
       if (challenge != null) 'challenge': challenge,
+      if (soundKey != null) 'sound_key': soundKey,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -819,6 +862,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     Value<String?>? skippedDates,
     Value<String?>? tag,
     Value<String?>? challenge,
+    Value<String?>? soundKey,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -838,6 +882,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
       skippedDates: skippedDates ?? this.skippedDates,
       tag: tag ?? this.tag,
       challenge: challenge ?? this.challenge,
+      soundKey: soundKey ?? this.soundKey,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -889,6 +934,9 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     if (challenge.present) {
       map['challenge'] = Variable<String>(challenge.value);
     }
+    if (soundKey.present) {
+      map['sound_key'] = Variable<String>(soundKey.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -918,6 +966,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
           ..write('skippedDates: $skippedDates, ')
           ..write('tag: $tag, ')
           ..write('challenge: $challenge, ')
+          ..write('soundKey: $soundKey, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -1509,6 +1558,7 @@ typedef $$RemindersTableCreateCompanionBuilder =
       Value<String?> skippedDates,
       Value<String?> tag,
       Value<String?> challenge,
+      Value<String?> soundKey,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -1529,6 +1579,7 @@ typedef $$RemindersTableUpdateCompanionBuilder =
       Value<String?> skippedDates,
       Value<String?> tag,
       Value<String?> challenge,
+      Value<String?> soundKey,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -1610,6 +1661,11 @@ class $$RemindersTableFilterComposer
 
   ColumnFilters<String> get challenge => $composableBuilder(
     column: $table.challenge,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get soundKey => $composableBuilder(
+    column: $table.soundKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1703,6 +1759,11 @@ class $$RemindersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get soundKey => $composableBuilder(
+    column: $table.soundKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -1777,6 +1838,9 @@ class $$RemindersTableAnnotationComposer
   GeneratedColumn<String> get challenge =>
       $composableBuilder(column: $table.challenge, builder: (column) => column);
 
+  GeneratedColumn<String> get soundKey =>
+      $composableBuilder(column: $table.soundKey, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -1826,6 +1890,7 @@ class $$RemindersTableTableManager
                 Value<String?> skippedDates = const Value.absent(),
                 Value<String?> tag = const Value.absent(),
                 Value<String?> challenge = const Value.absent(),
+                Value<String?> soundKey = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -1844,6 +1909,7 @@ class $$RemindersTableTableManager
                 skippedDates: skippedDates,
                 tag: tag,
                 challenge: challenge,
+                soundKey: soundKey,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -1864,6 +1930,7 @@ class $$RemindersTableTableManager
                 Value<String?> skippedDates = const Value.absent(),
                 Value<String?> tag = const Value.absent(),
                 Value<String?> challenge = const Value.absent(),
+                Value<String?> soundKey = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -1882,6 +1949,7 @@ class $$RemindersTableTableManager
                 skippedDates: skippedDates,
                 tag: tag,
                 challenge: challenge,
+                soundKey: soundKey,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

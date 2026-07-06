@@ -42,10 +42,16 @@ class MainActivity : FlutterActivity() {
                     "playAlarm" -> {
                         ringtone?.stop()
                         rampHandler.removeCallbacksAndMessages(null) // clear any prior ramp
-                        ringtone = RingtoneManager.getRingtone(
-                            this,
+                        // Resolve the reminder's soundKey to a bundled raw resource
+                        // by name; null/unknown key → the default alarm tone.
+                        val key = call.argument<String>("sound")
+                        val uri = if (key != null &&
+                            resources.getIdentifier(key, "raw", packageName) != 0) {
+                            android.net.Uri.parse("android.resource://$packageName/raw/$key")
+                        } else {
                             RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-                        ).apply {
+                        }
+                        ringtone = RingtoneManager.getRingtone(this, uri).apply {
                             audioAttributes = AudioAttributes.Builder()
                                 .setUsage(AudioAttributes.USAGE_ALARM)
                                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)

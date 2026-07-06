@@ -19,6 +19,7 @@ class _FakeNotifications extends NotificationService {
     required int snoozeMinutes,
     required String reminderId,
     bool isAlarm = true,
+    String? soundKey,
   }) async {}
 }
 

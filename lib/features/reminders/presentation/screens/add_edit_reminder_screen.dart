@@ -7,6 +7,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/database/database.dart';
+import '../../../../core/notifications/sounds.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../core/theme/widgets.dart';
 import '../../domain/recurrence.dart';
@@ -35,6 +36,8 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
   bool _isAlarm = true;
   // null = off; 'math' = require solving a math problem before Dismiss works.
   String? _challenge;
+  // null = System default; a catalog key (see sounds.dart) names a bundled tone.
+  String? _soundKey;
   bool _loaded = false;
   // Preserved across an edit so saving doesn't re-enable a paused reminder or
   // reset its creation date. Defaults hold for create mode.
@@ -109,6 +112,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
     _snooze = r.snoozeMinutes;
     _isAlarm = r.isAlarm;
     _challenge = r.challenge;
+    _soundKey = r.soundKey;
     if (!asCopy) {
       _isEnabled = r.isEnabled;
       _createdAt = r.createdAt;
@@ -154,6 +158,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
       isEnabled: _isEnabled || scheduleChanged,
       isAlarm: _isAlarm,
       challenge: _challenge,
+      soundKey: _soundKey,
       // ponytail: free text, no length cap and no autocomplete against existing
       // tags — trim-to-null is the whole input. Add suggestions only if typos
       // become a real complaint.
@@ -379,6 +384,24 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
                       value: _isAlarm,
                       labelOf: (v) => v ? 'Alarm' : 'Notification',
                       onChanged: (v) => setState(() => _isAlarm = v),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 11),
+                // alarm sound: null = System default, else a bundled catalog tone
+                TkCard(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      Icon(Icons.music_note_outlined, size: 20, color: t.ic1),
+                      const SizedBox(width: 13),
+                      Text('Alarm sound', style: body(14, FontWeight.w600, t.ink)),
+                    ]),
+                    const SizedBox(height: 12),
+                    TkSegmented<String?>(
+                      options: const [null, 'chime', 'classic', 'buzzer'],
+                      value: _soundKey,
+                      labelOf: soundLabelFor,
+                      onChanged: (v) => setState(() => _soundKey = v),
                     ),
                   ]),
                 ),

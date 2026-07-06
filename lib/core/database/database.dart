@@ -26,6 +26,9 @@ class Reminders extends Table {
   // Text (not bool) so a future 'typed'/'shake' needs no new migration.
   // Ring-screen-only; scheduler/notification path ignores it.
   TextColumn get challenge => text().nullable()();
+  // null = System default (unchanged channel/native behavior); a non-null key
+  // names one lib/core/notifications/sounds.dart catalog entry. Never derived.
+  TextColumn get soundKey => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -71,7 +74,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -83,6 +86,7 @@ class AppDatabase extends _$AppDatabase {
           if (from < 6) await m.addColumn(reminders, reminders.tag);
           if (from < 7) await m.addColumn(reminders, reminders.challenge);
           if (from < 8) await m.createTable(appState);
+          if (from < 9) await m.addColumn(reminders, reminders.soundKey);
         },
       );
 
