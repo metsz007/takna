@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 verified-by:
   - test/home_widget_test.dart
 ---

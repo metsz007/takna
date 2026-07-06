@@ -1,6 +1,7 @@
 import '../../features/reminders/domain/recurrence.dart';
 import '../database/database.dart';
 import '../notifications/notification_service.dart';
+import '../widget/next_reminder_snapshot.dart';
 
 /// Stable notification id for one occurrence of one reminder (FNV-1a).
 /// Deterministic across app runs — Object.hash is not — so the foreground
@@ -91,5 +92,11 @@ class Scheduler {
         soundKey: o.r.soundKey,
       );
     }
+
+    // Refresh the Android home-screen widget from the same DB+RRULE truth.
+    // Uses `floor`, not `now`, so a vacation pause shows the post-pause next
+    // fire rather than an occurrence that won't ring yet. Off-Android and in
+    // unit tests this silently no-ops (no platform channel).
+    await pushNextReminder(reminders, floor);
   }
 }
