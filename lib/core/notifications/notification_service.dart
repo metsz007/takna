@@ -55,6 +55,21 @@ const _actions = [
   );
 }
 
+/// Routes a notification-body tap. Alarm-mode reminders (the default) open the
+/// ringing full-screen alarm; notification-mode reminders open their detail
+/// page instead. Unknown/missing reminder → alarm (preserves prior behavior).
+/// [go] mirrors GoRouter.go so this stays testable without a real router.
+Future<void> routeNotificationTap(String? payload, AppDatabase db,
+    void Function(String location, {Object? extra}) go) async {
+  final reminderId = parsePayload(payload).reminderId;
+  final reminder = reminderId.isEmpty ? null : await db.getById(reminderId);
+  if (reminder?.isAlarm != false) {
+    go('/alarm', extra: payload);
+  } else {
+    go('/detail/$reminderId');
+  }
+}
+
 /// Applies a notification action to the DB and re-arms the rolling window.
 /// Snooze persists snoozedUntil (survives reboots, shown in the UI) then
 /// reconciles; Dismiss just reconciles — reconcile itself re-arms the window

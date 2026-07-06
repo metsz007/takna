@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/notifications/notification_service.dart';
 import 'core/router/router.dart';
 import 'core/scheduler/foreground_alarm_watcher.dart';
 import 'core/theme/theme.dart';
@@ -32,12 +33,16 @@ Future<void> main() async {
   container.read(schedulerProvider).reconcile();
 
   final app = TaknaApp(onboarded: prefs.getBool('onboarded') ?? false);
-  // Full-screen intent / tap launched us while ringing → open the alarm UI.
+  final db = container.read(databaseProvider);
+  // Full-screen intent / tap launched us: alarm reminders ring, plain
+  // notification reminders open their detail page (routeNotificationTap).
   final launchPayload = await notifications.launchPayload();
-  if (launchPayload != null) app.router.go('/alarm', extra: launchPayload);
-  // Alarm fires while the app is alive → same screen.
+  if (launchPayload != null) {
+    await routeNotificationTap(launchPayload, db, app.router.go);
+  }
+  // Tap while the app is alive → same routing (action buttons handled elsewhere).
   notifications.onForegroundResponse = (r) {
-    if (r.actionId == null) app.router.go('/alarm', extra: r.payload);
+    if (r.actionId == null) routeNotificationTap(r.payload, db, app.router.go);
   };
   // Foreground firing: Android won't full-screen while the app is active,
   // so a Dart timer takes the app to the alarm screen itself.
