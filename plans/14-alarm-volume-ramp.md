@@ -1,5 +1,5 @@
 ---
-status: planned
+status: in-progress
 verified-by:
   - test/alarm_snooze_test.dart
   - test/alarm_dismiss_test.dart
