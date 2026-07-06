@@ -35,13 +35,11 @@ class ReminderDetailScreen extends ConsumerWidget {
             if (r == null) return const Center(child: Text('Reminder not found'));
             final now = DateTime.now();
             final next5 = nextOccurrences(r, now, 5);
-            // A pending snooze wins if it comes before the next regular
-            // occurrence (mirrors _HomeList). Occurrence list below stays RRULE.
-            final snooze = r.snoozedUntil;
-            final snoozed = snooze != null &&
-                snooze.isAfter(now) &&
-                (next5.isEmpty || snooze.isBefore(next5.first));
-            final nextFire = snoozed ? snooze : (next5.isEmpty ? null : next5.first);
+            // Occurrence list below stays pure RRULE; the hero uses the
+            // snooze-aware effective next fire.
+            final next = effectiveNextFire(r, now);
+            final snoozed = next?.snoozed ?? false;
+            final nextFire = next?.at;
             return ListView(
               padding: const EdgeInsets.only(bottom: 40),
               children: [

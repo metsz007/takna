@@ -26,6 +26,23 @@ List<DateTime> nextOccurrences(Reminder r, DateTime after, int count) {
       .toList();
 }
 
+/// The next time this reminder will actually fire, and whether that's a
+/// pending snooze rather than a regular occurrence. A snooze
+/// (`snoozedUntil` after [now]) wins if there's no occurrence or it lands
+/// before the next one. Returns null when nothing is upcoming.
+({DateTime at, bool snoozed})? effectiveNextFire(Reminder r, DateTime now) {
+  final occ = nextOccurrences(r, now, 1);
+  final snooze = r.snoozedUntil;
+  ({DateTime at, bool snoozed})? next;
+  if (occ.isNotEmpty) next = (at: occ.first, snoozed: false);
+  if (snooze != null &&
+      snooze.isAfter(now) &&
+      (next == null || snooze.isBefore(next.at))) {
+    next = (at: snooze, snoozed: true);
+  }
+  return next;
+}
+
 /// Friendly label for the repeat badge ("Daily", "Weekly", ...).
 String recurrenceLabel(String? rruleString) {
   if (rruleString == null) return 'Once';

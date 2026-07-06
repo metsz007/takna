@@ -131,16 +131,7 @@ class _HomeList extends ConsumerWidget {
     ({Reminder r, DateTime at, bool snoozed})? hero;
     final nextAt = <String, ({DateTime at, bool snoozed})?>{};
     for (final r in reminders) {
-      final occ = nextOccurrences(r, now, 1);
-      final snooze = r.snoozedUntil;
-      // A pending snooze wins if it comes before the next regular occurrence.
-      ({DateTime at, bool snoozed})? next;
-      if (occ.isNotEmpty) next = (at: occ.first, snoozed: false);
-      if (snooze != null &&
-          snooze.isAfter(now) &&
-          (next == null || snooze.isBefore(next.at))) {
-        next = (at: snooze, snoozed: true);
-      }
+      final next = effectiveNextFire(r, now);
       nextAt[r.id] = next;
       if (r.isEnabled && next != null && (hero == null || next.at.isBefore(hero.at))) {
         hero = (r: r, at: next.at, snoozed: next.snoozed);

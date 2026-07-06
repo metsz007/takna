@@ -2,7 +2,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:takna/core/database/database.dart';
 import 'package:takna/features/reminders/domain/recurrence.dart';
 
-Reminder _r({String? rrule, required DateTime start}) => Reminder(
+Reminder _r({
+  String? rrule,
+  required DateTime start,
+  DateTime? snoozedUntil,
+}) =>
+    Reminder(
       id: 'x',
       title: 't',
       notes: null,
@@ -11,6 +16,7 @@ Reminder _r({String? rrule, required DateTime start}) => Reminder(
       rruleString: rrule,
       offsetMinutes: 0,
       snoozeMinutes: 10,
+      snoozedUntil: snoozedUntil,
       isEnabled: true,
       isAlarm: true,
       createdAt: start,
@@ -44,6 +50,42 @@ void main() {
       DateTime(2026, 7, 8, 9),
       DateTime(2026, 7, 10, 9),
     ]);
+  });
+
+  group('effectiveNextFire', () {
+    test('snooze earlier than next occurrence wins', () {
+      final snooze = DateTime(2026, 7, 4, 12, 30);
+      final r = _r(rrule: 'FREQ=DAILY', start: start, snoozedUntil: snooze);
+      // Next occurrence is Jul 5 09:00; snooze is sooner.
+      expect(effectiveNextFire(r, after), (at: snooze, snoozed: true));
+    });
+
+    test('snooze later than next occurrence loses', () {
+      final snooze = DateTime(2026, 7, 6, 12, 0);
+      final r = _r(rrule: 'FREQ=DAILY', start: start, snoozedUntil: snooze);
+      expect(
+          effectiveNextFire(r, after), (at: DateTime(2026, 7, 5, 9), snoozed: false));
+    });
+
+    test('past snooze is ignored', () {
+      final r = _r(
+          rrule: 'FREQ=DAILY',
+          start: start,
+          snoozedUntil: DateTime(2026, 7, 4, 11, 0));
+      expect(
+          effectiveNextFire(r, after), (at: DateTime(2026, 7, 5, 9), snoozed: false));
+    });
+
+    test('no occurrence but pending snooze → snooze', () {
+      final snooze = DateTime(2026, 7, 5, 8, 0);
+      final r = _r(start: start, snoozedUntil: snooze); // one-time, already past
+      expect(effectiveNextFire(r, after), (at: snooze, snoozed: true));
+    });
+
+    test('neither occurrence nor snooze → null', () {
+      final r = _r(start: start); // one-time, already past
+      expect(effectiveNextFire(r, after), isNull);
+    });
   });
 
   test('labels', () {
