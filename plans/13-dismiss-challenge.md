@@ -270,14 +270,14 @@ changes.
   `test/alarm_dismiss_test.dart` and `test/alarm_snooze_test.dart` are untouched
   and green (the un-challenged Dismiss and all Snooze surfaces didn't regress),
   and `test/database_default_test.dart` still passes (new column defaults null).
-- [ ] Manual (Android device/emulator): create an alarm-mode reminder with
+- [x] Manual (Android device/emulator): create an alarm-mode reminder with
   Dismiss challenge = "Solve math"; let it ring full-screen → tapping Dismiss
   reveals a math problem; a wrong answer keeps it ringing; the correct answer
   dismisses and returns home.
-- [ ] Manual: on that same ringing challenge alarm, tap a Snooze preset (or the
+- [x] Manual: on that same ringing challenge alarm, tap a Snooze preset (or the
   big Snooze button) **without** solving the problem → it snoozes and closes
   (SAFETY: snooze is never blocked).
-- [ ] Manual: a reminder with the challenge left "Off" dismisses immediately on
+- [x] Manual: a reminder with the challenge left "Off" dismisses immediately on
   the first Dismiss tap (no regression), and the "Dismiss challenge" card is
   hidden when Alert style is switched to Notification.
 

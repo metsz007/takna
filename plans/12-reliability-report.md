@@ -276,10 +276,10 @@ notification queue, any existing column.
     fire on an intermediate day stops the streak at that boundary; caps at 7.
 - `flutter analyze` clean; all existing suites still pass (no schema change, so
   `database_default_test` / `fired_events_test` are untouched).
-- [ ] Manual (device/emulator): open Settings → tap "Alarm history" → screen
+- [x] Manual (device/emulator): open Settings → tap "Alarm history" → screen
   loads. With a recorded fire, it appears under Recent and Summary "Rang"
   increments.
-- [ ] Manual: create a daily alarm-mode reminder whose time already passed today
+- [x] Manual: create a daily alarm-mode reminder whose time already passed today
   without ringing (e.g. set start earlier, disable/re-enable so a past
   occurrence exists with no event) → it shows under "No ring recorded" with soft
   wording; the streak reflects the miss. A notification-mode reminder with the

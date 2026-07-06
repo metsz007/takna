@@ -187,14 +187,14 @@ until <that date>".
   - Existing cases still pass unchanged (no pause row → `getPausedUntil()` null
     → `floor == now`).
 - `flutter analyze` clean; all existing suites pass.
-- [ ] Manual: set pause to a future date in Settings → home shows the paused
+- [x] Manual: set pause to a future date in Settings → home shows the paused
   banner and the settings row reads "Paused until <date>".
-- [ ] Manual: with pause active, add a reminder for +2 min (inside the window)
+- [x] Manual: with pause active, add a reminder for +2 min (inside the window)
   → it does **not** ring.
-- [ ] Manual: set a reminder for shortly after the pause end, force-close the
+- [x] Manual: set a reminder for shortly after the pause end, force-close the
   app, leave it closed through the pause boundary → it rings without the app
   being opened (proves the pre-scheduled post-pause occurrence).
-- [ ] Manual: tap Resume (banner or settings) → banner clears, alarms
+- [x] Manual: tap Resume (banner or settings) → banner clears, alarms
   reschedule immediately.
 
 ## Out of scope

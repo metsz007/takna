@@ -52,16 +52,22 @@ class HistoryScreen extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
                   child:
                       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    // No events at all → no streak claim; a fresh install
+                    // hasn't proven anything yet (honest-UI rule).
                     Text(
-                        r.streakDays > 0
-                            ? '🔥 ${r.streakDays}-day streak'
-                            : 'No streak yet',
+                        r.log.isEmpty
+                            ? 'No history yet'
+                            : r.streakDays > 0
+                                ? '🔥 ${r.streakDays}-day streak'
+                                : 'No streak yet',
                         style: display(24, FontWeight.w700, t.heroInk, spacing: -.3)),
                     const SizedBox(height: 6),
                     Text(
-                        r.missed.isEmpty
-                            ? 'Every alarm rang'
-                            : 'Some alarms had no ring recorded',
+                        r.log.isEmpty
+                            ? 'History builds as your alarms ring'
+                            : r.missed.isEmpty
+                                ? 'Every alarm rang'
+                                : 'Some alarms had no ring recorded',
                         style: body(13, FontWeight.w500, t.heroSub)),
                   ]),
                 ),

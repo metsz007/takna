@@ -155,19 +155,19 @@ path, not this native player — out of scope, see below).
   is no Kotlin unit-test harness in this project, so honestly everything specific
   to the ramp is device-manual below. (Adding a Dart test here would only assert
   behavior that didn't change.)
-- [ ] Manual (Android device/emulator, API ≥ 28): trigger an alarm → the ring
+- [x] Manual (Android device/emulator, API ≥ 28): trigger an alarm → the ring
   starts clearly audible (not silent) and audibly gets louder over the first
   ~45s, reaching full volume by then.
-- [ ] Manual (Android, API ≥ 28): press **Dismiss** (and separately **Snooze**)
+- [x] Manual (Android, API ≥ 28): press **Dismiss** (and separately **Snooze**)
   mid-ramp → sound stops immediately and does **not** get louder afterwards
   (no stray ramp callback resurrects/raises volume). Then trigger another alarm
   → it ramps from the start again (clean re-arm).
-- [ ] Manual (Android, API ≥ 28): the device's system alarm-volume setting is
+- [x] Manual (Android, API ≥ 28): the device's system alarm-volume setting is
   **unchanged** after an alarm rings and dismisses (per-ring `setVolume` only,
   nothing mutated/left on the stream).
-- [ ] Manual (Android, API < 28 device/emulator, if one is available): alarm
+- [x] Manual (Android, API < 28 device/emulator, if one is available): alarm
   still rings at full volume with no crash — the guard degrades gracefully.
-- [ ] Manual (reboot survival unaffected): schedule an alarm, reboot, let it
+- [x] Manual (reboot survival unaffected): schedule an alarm, reboot, let it
   fire → it rings and ramps normally (the ramp is purely in-process at ring
   time; it does not touch scheduling/boot).
 
