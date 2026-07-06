@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -226,6 +227,19 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
                             divider: true),
                         _dataRow(Icons.file_download_outlined, 'Import backup', _import),
                       ]),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 24),
+                    child: FutureBuilder<PackageInfo>(
+                      future: PackageInfo.fromPlatform(),
+                      builder: (context, snap) => Text(
+                        snap.hasData
+                            ? 'Takna ${snap.data!.version} (${snap.data!.buildNumber})'
+                            : '',
+                        textAlign: TextAlign.center,
+                        style: body(12, FontWeight.w500, t.ink3),
+                      ),
                     ),
                   ),
                 ],
