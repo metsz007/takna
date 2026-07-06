@@ -40,7 +40,7 @@ This document is the technical blueprint for the v1 build. It is derived from th
 |---|---|---|
 | Framework | Flutter | Cross-platform (iOS + Android) |
 | Notifications / alarms | `flutter_local_notifications` | `zonedSchedule` with `exactAllowWhileIdle` |
-| Alarm fallback (Android) | `android_alarm_manager_plus` | Background callback that survives app kill; used to re-arm |
+| Alarm fallback (Android) | *(none — deliberately)* | `flutter_local_notifications`' boot receiver re-posts the scheduled queue; `android_alarm_manager_plus` was not added in v1 |
 | Local storage | `drift` (SQLite) | Type-safe; real SQL helps recurrence querying |
 | State management | `riverpod` | Testable, right-sized for this app |
 | Time zones | `timezone` | Required — `zonedSchedule` needs TZ data or DST breaks |
@@ -151,8 +151,8 @@ Because it fully rebuilds, it is idempotent and self-healing — a missed edit o
 
 ### 6.3 Surviving reboot (Android)
 
-- Register a `BOOT_COMPLETED` receiver.
-- On boot, run `reconcile()` from the DB. OS alarms do **not** survive reboot on their own — this step is mandatory or every alarm silently dies after a restart.
+- Register a `BOOT_COMPLETED` receiver. OS alarms do **not** survive reboot on their own — this step is mandatory or every alarm silently dies after a restart.
+- **As built (v1):** `flutter_local_notifications`' `ScheduledNotificationBootReceiver` handles `BOOT_COMPLETED` and re-posts the previously scheduled queue. It does not run Dart, so no `reconcile()` happens until the next app open — acceptable because the rolling window is 10 occurrences deep per reminder.
 
 ### 6.4 The reliability battle (Android OEMs)
 
@@ -229,7 +229,7 @@ Both light and dark mode are required. Typography: sans body with a characterful
 
 | Risk | Mitigation |
 |---|---|
-| OEM battery killers silently drop alarms | Battery-optimization prompt (onboarding + settings); `android_alarm_manager_plus` re-arm; document per-OEM quirks |
+| OEM battery killers silently drop alarms | Battery-optimization prompt (onboarding + settings); document per-OEM quirks; `android_alarm_manager_plus` re-arm is a future option if field reports demand it |
 | iOS 64-notification cap | Rolling-window scheduler, re-armed on app open + alarm fire |
 | Alarms die on reboot | `BOOT_COMPLETED` → `reconcile()` |
 | DST / timezone drift | `timezone` package + store IANA tz per reminder; `zonedSchedule` |
