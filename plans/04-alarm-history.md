@@ -191,10 +191,10 @@ dependencies — drift, the DB, and `intl` are already here. Requires a
     null actionId writes **no** row.
 - `flutter analyze` clean; all existing suites still pass (schema bump doesn't
   break `database_default_test.dart` — verify).
-- [ ] Manual (device/emulator): let an alarm fire full-screen → open its detail
+- [x] Manual (device/emulator): let an alarm fire full-screen → open its detail
   → "Last fired: … · fired" (or the verb after acting) shows. Dismiss from the
   notification shade instead → detail shows "· dismissed".
-- [ ] Manual: kill the app, let an alarm fire, press Dismiss on the lock-screen
+- [x] Manual: kill the app, let an alarm fire, press Dismiss on the lock-screen
   notification → reopen app → detail shows the dismissed event (confirms the
   background-isolate write landed).
 
