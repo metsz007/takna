@@ -7,6 +7,7 @@ import '../../../../core/theme/theme.dart';
 import '../../../../core/theme/widgets.dart';
 import '../../domain/recurrence.dart';
 import '../providers.dart';
+import '../widgets/reliability_banner.dart';
 
 class ReminderDetailScreen extends ConsumerWidget {
   const ReminderDetailScreen({super.key, required this.reminderId});
@@ -172,22 +173,9 @@ class ReminderDetailScreen extends ConsumerWidget {
                       ),
                   ]),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
-                    decoration:
-                        BoxDecoration(color: t.okSoft, borderRadius: BorderRadius.circular(14)),
-                    child: Row(children: [
-                      Icon(Icons.verified_user_outlined, size: 18, color: t.ok),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                            'Reliable alarms are on. Takna will fire even in battery-saver mode.',
-                            style: body(12, FontWeight.w500, t.ink2, height: 1.4)),
-                      ),
-                    ]),
-                  ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: ReliabilityBanner(showWhenReliable: true),
                 ),
               ],
             );

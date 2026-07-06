@@ -8,6 +8,7 @@ import '../../../../core/theme/theme.dart';
 import '../../../../core/theme/widgets.dart';
 import '../../domain/recurrence.dart';
 import '../providers.dart';
+import '../widgets/reliability_banner.dart';
 
 String _countdown(DateTime d) {
   final diff = d.difference(DateTime.now());
@@ -124,6 +125,7 @@ class _HomeList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = context.tk;
     final now = DateTime.now();
+    final reliable = ref.watch(reliabilityProvider).value?.reliable ?? true;
     ({Reminder r, DateTime at, bool snoozed})? hero;
     final nextAt = <String, ({DateTime at, bool snoozed})?>{};
     for (final r in reminders) {
@@ -170,10 +172,15 @@ class _HomeList extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 110),
       children: [
         const _Header(),
+        if (!reliable)
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: ReliabilityBanner(),
+          ),
         if (hero != null)
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-            child: _HeroCard(hero.r, hero.at, hero.snoozed),
+            child: _HeroCard(hero.r, hero.at, hero.snoozed, reliable),
           ),
         if (today.isNotEmpty) section('Today', today),
         if (upcoming.isNotEmpty) section('Upcoming', upcoming),
@@ -183,10 +190,11 @@ class _HomeList extends ConsumerWidget {
 }
 
 class _HeroCard extends StatelessWidget {
-  const _HeroCard(this.reminder, this.at, this.snoozed);
+  const _HeroCard(this.reminder, this.at, this.snoozed, this.reliable);
   final Reminder reminder;
   final DateTime at;
   final bool snoozed;
+  final bool reliable;
 
   @override
   Widget build(BuildContext context) {
@@ -232,18 +240,25 @@ class _HeroCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Row(children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: t.accent,
-                shape: BoxShape.circle,
-                boxShadow: const [BoxShadow(color: Color(0x38E0A43B), spreadRadius: 3)],
-              ),
-            ),
+            reliable
+                ? Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: t.accent,
+                      shape: BoxShape.circle,
+                      boxShadow: const [BoxShadow(color: Color(0x38E0A43B), spreadRadius: 3)],
+                    ),
+                  )
+                : Icon(Icons.warning_amber_rounded, size: 13, color: t.accent),
             const SizedBox(width: 6),
-            Text('Alarm set · notifies even when your phone is locked',
-                style: body(11, FontWeight.w500, t.heroSub)),
+            Expanded(
+              child: Text(
+                  reliable
+                      ? 'Alarm set · notifies even when your phone is locked'
+                      : 'Alarm set · may not ring until you fix permissions',
+                  style: body(11, FontWeight.w500, t.heroSub)),
+            ),
           ]),
         ]),
       ),

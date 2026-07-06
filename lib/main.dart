@@ -45,18 +45,41 @@ Future<void> main() async {
   runApp(UncontrolledProviderScope(container: container, child: app));
 }
 
-class TaknaApp extends ConsumerWidget {
+class TaknaApp extends ConsumerStatefulWidget {
   TaknaApp({super.key, required bool onboarded})
       : router = buildRouter(onboarded: onboarded);
   final GoRouter router;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => MaterialApp.router(
+  ConsumerState<TaknaApp> createState() => _TaknaAppState();
+}
+
+class _TaknaAppState extends ConsumerState<TaknaApp> {
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    // The only resume hook the reliability UI needs: re-read permissions when
+    // the user returns from system settings so home + detail refresh together.
+    // ponytail: settings' own _load-on-resume is a separate audit item, not this.
+    _lifecycle = AppLifecycleListener(
+        onResume: () => ref.invalidate(reliabilityProvider));
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => MaterialApp.router(
         title: 'Takna',
         theme: themeFor(Brightness.light),
         darkTheme: themeFor(Brightness.dark),
         themeMode: ref.watch(themeModeProvider),
-        routerConfig: router,
+        routerConfig: widget.router,
         debugShowCheckedModeBanner: false,
         // One wave background behind the whole navigator — screens are
         // transparent layers over it, so it never resets or re-mounts.
