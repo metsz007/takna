@@ -92,7 +92,7 @@ class $RemindersTable extends Reminders
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultValue: const Constant(10),
+    defaultValue: const Constant(5),
   );
   static const VerificationMeta _isEnabledMeta = const VerificationMeta(
     'isEnabled',

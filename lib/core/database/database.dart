@@ -11,7 +11,8 @@ class Reminders extends Table {
   TextColumn get timeZone => text()();
   TextColumn get rruleString => text().nullable()();
   IntColumn get offsetMinutes => integer().withDefault(const Constant(0))();
-  IntColumn get snoozeMinutes => integer().withDefault(const Constant(10))();
+  // 5 matches the UI default and the payload fallback in parsePayload().
+  IntColumn get snoozeMinutes => integer().withDefault(const Constant(5))();
   BoolColumn get isEnabled => boolean().withDefault(const Constant(true))();
   BoolColumn get isAlarm => boolean().withDefault(const Constant(true))();
   DateTimeColumn get snoozedUntil => dateTime().nullable()();
