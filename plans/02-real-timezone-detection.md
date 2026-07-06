@@ -133,7 +133,7 @@ changes.
 - `flutter_timezone` appears in `pubspec.yaml` pinned to one major.
 - The plugin call is wrapped in try/catch so a channel failure degrades to the
   offset scan, never crashes `init()`.
-- [ ] Manual (physical/emulated device in a DST-observing zone whose offset is
+- [x] Manual (physical/emulated device in a DST-observing zone whose offset is
   shared by a non-DST sibling — e.g. set the device to `America/New_York`): add
   a log or assert that `tz.local.name` after `init()` equals the device's real
   IANA id (`America/New_York`), not an offset-matched sibling. Confirms the

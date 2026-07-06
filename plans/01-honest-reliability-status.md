@@ -127,7 +127,7 @@ widen it. In particular: battery-optimization stays out of the warning logic
 - `flutter analyze` is clean; existing `test/recurrence_test.dart` still passes.
 - The provider reads only `Permission.notification` and
   `Permission.scheduleExactAlarm` — no battery-optimization in the warning path.
-- [ ] Manual (Android 13 emulator, platform-dependent): deny notifications,
+- [x] Manual (Android 13 emulator, platform-dependent): deny notifications,
   create a reminder → home shows the warning card and the hero footer no longer
   claims "notifies even when your phone is locked"; detail shows the amber
   warning. Tapping either lands on Settings. Grant the permission in system
