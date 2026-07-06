@@ -10,6 +10,10 @@ import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/theme/theme.dart';
 import '../providers.dart';
 
+// ponytail: hardcoded presets — wire to a pref only if users ask. The
+// reminder's own default is still the primary big button below.
+const _snoozePresets = [5, 10, 30];
+
 /// Full-screen ringing UI, launched over the lock screen by the
 /// notification's full-screen intent (payload arrives via route extra).
 class AlarmScreen extends ConsumerStatefulWidget {
@@ -60,12 +64,10 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
     }
   }
 
-  Future<void> _snooze() async {
+  Future<void> _snooze(int minutes) async {
     final p = parsePayload(widget.payload);
     await _native.invokeMethod('stopAlarm');
-    await ref
-        .read(reminderRepositoryProvider)
-        .snooze(p.reminderId, p.snoozeMinutes);
+    await ref.read(reminderRepositoryProvider).snooze(p.reminderId, minutes);
     if (mounted) context.go('/');
   }
 
@@ -115,10 +117,33 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
               ],
             ),
             const Spacer(),
+            // Quick presets: snooze by a chosen duration this once, without
+            // touching the reminder's saved default (that's the big button).
+            Row(children: [
+              for (final m in _snoozePresets) ...[
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _snooze(m),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0x29F2EBDA),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text('$m min',
+                          style: body(13, FontWeight.w700, heroInk)),
+                    ),
+                  ),
+                ),
+                if (m != _snoozePresets.last) const SizedBox(width: 10),
+              ],
+            ]),
+            const SizedBox(height: 12),
             Row(children: [
               Expanded(
                 child: GestureDetector(
-                  onTap: _snooze,
+                  onTap: () => _snooze(p.snoozeMinutes),
                   child: Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
