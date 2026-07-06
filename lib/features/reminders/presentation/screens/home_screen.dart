@@ -38,7 +38,9 @@ class HomeScreen extends ConsumerWidget {
         bottom: false,
         child: reminders.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('$e')),
+          error: (e, _) => Center(
+            child: Text('Something went wrong loading your reminders',
+                style: body(14, FontWeight.w600, t.ink2))),
           data: (list) => list.isEmpty ? const _EmptyState() : _HomeList(list),
         ),
       ),

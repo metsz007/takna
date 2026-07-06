@@ -28,7 +28,9 @@ class ReminderDetailScreen extends ConsumerWidget {
       body: SafeArea(
         child: reminder.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('$e')),
+          error: (e, _) => Center(
+            child: Text("Couldn't load this reminder",
+                style: body(14, FontWeight.w600, t.ink2))),
           data: (r) {
             if (r == null) return const Center(child: Text('Reminder not found'));
             final next5 = nextOccurrences(r, DateTime.now(), 5);
