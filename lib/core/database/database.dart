@@ -22,6 +22,10 @@ class Reminders extends Table {
   // Optional free-text tag for home filtering. Single tag per reminder; distinct
   // tags are derived in memory (never stored). Inert data — scheduler ignores it.
   TextColumn get tag => text().nullable()();
+  // null = off; 'math' = solve a math problem before Dismiss will dismiss.
+  // Text (not bool) so a future 'typed'/'shake' needs no new migration.
+  // Ring-screen-only; scheduler/notification path ignores it.
+  TextColumn get challenge => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -52,7 +56,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -62,6 +66,7 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) await m.createTable(firedEvents);
           if (from < 5) await m.addColumn(reminders, reminders.skippedDates);
           if (from < 6) await m.addColumn(reminders, reminders.tag);
+          if (from < 7) await m.addColumn(reminders, reminders.challenge);
         },
       );
 

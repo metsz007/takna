@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/theme/theme.dart';
+import '../../domain/challenge.dart';
 import '../providers.dart';
 
 // ponytail: hardcoded presets — wire to a pref only if users ask. The
@@ -27,6 +28,13 @@ class AlarmScreen extends ConsumerStatefulWidget {
 class _AlarmScreenState extends ConsumerState<AlarmScreen> {
   static const _native = MethodChannel('takna/settings');
   late Timer _tick;
+  // null = off / not yet loaded; 'math' = gate Dismiss behind a math problem.
+  // Looked up async, so there's a microtask window where it's null (see plan).
+  String? _challenge;
+  // Non-null once Dismiss is tapped on a challenge reminder: the problem the
+  // user must solve. Snooze is never gated by this.
+  MathChallenge? _pending;
+  final _answer = TextEditingController();
 
   @override
   void initState() {
@@ -44,12 +52,19 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
     Timer(const Duration(seconds: 2),
         () => ref.read(notificationServiceProvider).cancel(p.id));
     _native.invokeMethod('playAlarm');
+    // Ring-screen-only lookup of the dismiss challenge (same repo seam plan 11
+    // uses for soundKey). A deleted/missing reminder leaves _challenge null →
+    // no gate (fail open toward being able to dismiss, never toward trapping).
+    ref.read(reminderRepositoryProvider).getById(p.reminderId).then((r) {
+      if (mounted) setState(() => _challenge = r?.challenge);
+    });
   }
 
   @override
   void dispose() {
     _native.invokeMethod('stopAlarm');
     _tick.cancel();
+    _answer.dispose();
     super.dispose();
   }
 
@@ -64,6 +79,18 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
     } finally {
       if (mounted) context.go('/');
     }
+  }
+
+  void _checkAnswer() {
+    if (int.tryParse(_answer.text.trim()) == _pending!.answer) {
+      _dismiss();
+      return;
+    }
+    // Wrong: keep ringing, clear the field, and regenerate with a fresh seed so
+    // the same value can't be resubmitted.
+    setState(() =>
+        _pending = generateMathChallenge(DateTime.now().microsecondsSinceEpoch));
+    _answer.clear();
   }
 
   Future<void> _snooze(int minutes) async {
@@ -82,11 +109,19 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
     const amber = Color(0xFFE0A43B);
     return Scaffold(
       backgroundColor: const Color(0xFF173B44),
+      // Scroll when cramped (short screen, or the challenge input's keyboard is
+      // up) so the answer field can never be clipped/occluded — the Spacers
+      // still centre the content when there's room.
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(26),
-          child: Column(children: [
-            const Spacer(),
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.all(26),
+                  child: Column(children: [
+                    const Spacer(),
             // pulsing bell
             _Pulse(
               child: Container(
@@ -142,6 +177,56 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
               ],
             ]),
             const SizedBox(height: 12),
+            // Dismiss challenge (math): shown only after Dismiss is tapped on a
+            // challenge reminder. Sits above the Dismiss button; the whole
+            // Snooze row above stays active and ungated the entire time.
+            if (_pending != null) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0x29F2EBDA),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Column(children: [
+                  Text('${_pending!.prompt} = ?',
+                      key: const Key('challengePrompt'),
+                      style: body(20, FontWeight.w700, heroInk)),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _answer,
+                    keyboardType: TextInputType.number,
+                    autofocus: true,
+                    textAlign: TextAlign.center,
+                    style: body(18, FontWeight.w700, heroInk),
+                    decoration: InputDecoration(
+                      hintText: 'Answer',
+                      hintStyle: body(15, FontWeight.w500, heroSub),
+                      filled: true,
+                      fillColor: const Color(0x1AF2EBDA),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: _checkAnswer,
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: amber,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text('Check',
+                          style: body(15, FontWeight.w700, const Color(0xFF173B44))),
+                    ),
+                  ),
+                ]),
+              ),
+              const SizedBox(height: 12),
+            ],
             Row(children: [
               Expanded(
                 child: GestureDetector(
@@ -161,7 +246,17 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
               const SizedBox(width: 12),
               Expanded(
                 child: GestureDetector(
-                  onTap: _dismiss,
+                  onTap: () {
+                    // No challenge → dismiss immediately (today's behavior).
+                    // Otherwise reveal the math problem; the actual dismissal
+                    // only runs on a correct answer (_checkAnswer → _dismiss).
+                    if (_challenge != 'math') {
+                      _dismiss();
+                      return;
+                    }
+                    setState(() => _pending = generateMathChallenge(
+                        DateTime.now().microsecondsSinceEpoch));
+                  },
                   child: Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
@@ -183,7 +278,11 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
               ),
             ]),
             const SizedBox(height: 10),
-          ]),
+                  ]),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );

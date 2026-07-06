@@ -33,6 +33,8 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
   int _offset = 0;
   int _snooze = 5;
   bool _isAlarm = true;
+  // null = off; 'math' = require solving a math problem before Dismiss works.
+  String? _challenge;
   bool _loaded = false;
   // Preserved across an edit so saving doesn't re-enable a paused reminder or
   // reset its creation date. Defaults hold for create mode.
@@ -106,6 +108,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
     _offset = r.offsetMinutes;
     _snooze = r.snoozeMinutes;
     _isAlarm = r.isAlarm;
+    _challenge = r.challenge;
     if (!asCopy) {
       _isEnabled = r.isEnabled;
       _createdAt = r.createdAt;
@@ -150,6 +153,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
       // schedule (create mode: _loadedDate is null, so scheduleChanged is true).
       isEnabled: _isEnabled || scheduleChanged,
       isAlarm: _isAlarm,
+      challenge: _challenge,
       // ponytail: free text, no length cap and no autocomplete against existing
       // tags — trim-to-null is the whole input. Add suggestions only if typos
       // become a real complaint.
@@ -378,6 +382,31 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
                     ),
                   ]),
                 ),
+                // dismiss challenge: only meaningful in alarm mode (needs the
+                // ring screen to host it), so hidden for notification style.
+                if (_isAlarm) ...[
+                  const SizedBox(height: 11),
+                  TkCard(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [
+                            Icon(Icons.calculate_outlined, size: 20, color: t.ic1),
+                            const SizedBox(width: 13),
+                            Text('Dismiss challenge',
+                                style: body(14, FontWeight.w600, t.ink)),
+                          ]),
+                          const SizedBox(height: 12),
+                          TkSegmented<bool>(
+                            options: const [false, true],
+                            value: _challenge == 'math',
+                            labelOf: (v) => v ? 'Solve math' : 'Off',
+                            onChanged: (v) =>
+                                setState(() => _challenge = v ? 'math' : null),
+                          ),
+                        ]),
+                  ),
+                ],
                 const SizedBox(height: 11),
                 // snooze card
                 TkCard(
