@@ -16,15 +16,12 @@ class SettingsScreen extends ConsumerStatefulWidget {
 
 class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingObserver {
   SharedPreferences? _prefs;
-  bool _notifGranted = false;
-  bool _exactGranted = false;
-  bool _batteryUnrestricted = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _load();
+    _loadPrefs();
   }
 
   @override
@@ -35,15 +32,16 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Permissions may have been changed in the system settings app; refresh.
-    if (state == AppLifecycleState.resumed) _load();
+    // Returned from the system settings app — re-probe permissions through
+    // their providers (no direct channel reads; home + banner share these).
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(reliabilityProvider);
+      ref.invalidate(batteryUnrestrictedProvider);
+    }
   }
 
-  Future<void> _load() async {
+  Future<void> _loadPrefs() async {
     _prefs = await SharedPreferences.getInstance();
-    _notifGranted = await Permission.notification.isGranted;
-    _exactGranted = await Permission.scheduleExactAlarm.isGranted;
-    _batteryUnrestricted = await Permission.ignoreBatteryOptimizations.isGranted;
     if (mounted) setState(() {});
   }
 
@@ -52,6 +50,11 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
     final t = context.tk;
     final prefs = _prefs;
     final themeMode = ref.watch(themeModeProvider);
+    // Loading defaults to granted (same convention as ReliabilityBanner).
+    final reliability = ref.watch(reliabilityProvider);
+    final notifGranted = reliability.value?.notifications ?? true;
+    final exactGranted = reliability.value?.exactAlarm ?? true;
+    final batteryUnrestricted = ref.watch(batteryUnrestrictedProvider).value ?? false;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -105,15 +108,15 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
                     child: TkCard(
                       padding: EdgeInsets.zero,
                       child: Column(children: [
-                        _permRow(Icons.notifications_outlined, 'Notifications', _notifGranted,
+                        _permRow(Icons.notifications_outlined, 'Notifications', notifGranted,
                             () async {
                           await ref.read(notificationServiceProvider).requestPermissions();
-                          _load();
+                          ref.invalidate(reliabilityProvider);
                         }, divider: true),
-                        _permRow(Icons.alarm_on_outlined, 'Exact alarms', _exactGranted,
+                        _permRow(Icons.alarm_on_outlined, 'Exact alarms', exactGranted,
                             () async {
                           await Permission.scheduleExactAlarm.request();
-                          _load();
+                          ref.invalidate(reliabilityProvider);
                         }, divider: true),
                         GestureDetector(
                           behavior: HitTestBehavior.opaque,
@@ -151,7 +154,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
                           style: body(12.5, FontWeight.w400, t.heroSub, height: 1.5),
                         ),
                         const SizedBox(height: 13),
-                        _batteryUnrestricted
+                        batteryUnrestricted
                             ? Container(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -170,7 +173,7 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
                             : GestureDetector(
                                 onTap: () async {
                                   await Permission.ignoreBatteryOptimizations.request();
-                                  _load();
+                                  ref.invalidate(batteryUnrestrictedProvider);
                                 },
                                 child: Container(
                                   padding:

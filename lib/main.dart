@@ -71,9 +71,9 @@ class _TaknaAppState extends ConsumerState<TaknaApp> {
   @override
   void initState() {
     super.initState();
-    // The only resume hook the reliability UI needs: re-read permissions when
-    // the user returns from system settings so home + detail refresh together.
-    // ponytail: settings' own _load-on-resume is a separate audit item, not this.
+    // Re-read permissions when the user returns from system settings so home +
+    // detail refresh together. Settings has its own resume observer that also
+    // invalidates its extra battery-optimization provider.
     _lifecycle = AppLifecycleListener(
         onResume: () => ref.invalidate(reliabilityProvider));
   }

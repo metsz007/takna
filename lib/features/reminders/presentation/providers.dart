@@ -46,6 +46,12 @@ final reliabilityProvider = FutureProvider<ReliabilityStatus>((ref) async =>
       await Permission.scheduleExactAlarm.isGranted,
     ));
 
+/// Battery optimization is deliberately outside [ReliabilityStatus] (it never
+/// gates `reliable`). Only Settings surfaces it, so it gets its own tiny
+/// provider — same override-in-tests / invalidate-to-refresh shape.
+final batteryUnrestrictedProvider = FutureProvider<bool>(
+    (ref) => Permission.ignoreBatteryOptimizations.isGranted);
+
 class ThemeModeNotifier extends Notifier<ThemeMode> {
   @override
   ThemeMode build() => ThemeMode.system;
