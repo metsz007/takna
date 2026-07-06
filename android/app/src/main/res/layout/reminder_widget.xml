@@ -6,27 +6,65 @@
     android:orientation="vertical"
     android:gravity="center_vertical"
     android:background="@drawable/reminder_widget_bg"
-    android:padding="16dp">
+    android:paddingLeft="18dp"
+    android:paddingRight="18dp"
+    android:paddingTop="14dp"
+    android:paddingBottom="14dp">
+
+    <!-- Gold eyebrow, mirrors the app hero's NEXT ALARM label. -->
+    <TextView
+        android:id="@+id/widget_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:textColor="#E0A43B"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.14"
+        android:text="TAKNA" />
 
     <TextView
         android:id="@+id/widget_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
         android:maxLines="1"
         android:ellipsize="end"
         android:textColor="#F4EDE1"
-        android:textSize="16sp"
+        android:textSize="15sp"
         android:textStyle="bold"
-        android:text="No upcoming reminders" />
+        android:text="Nothing scheduled" />
 
-    <TextView
-        android:id="@+id/widget_when"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:paddingTop="4dp"
-        android:textColor="#A7BEC2"
-        android:textSize="13sp"
-        android:text="" />
+        android:layout_marginTop="2dp"
+        android:orientation="horizontal"
+        android:gravity="bottom">
+
+        <!-- Big time, like the hero's display clock. -->
+        <TextView
+            android:id="@+id/widget_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:includeFontPadding="false"
+            android:textColor="#FFFFFF"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:text="" />
+
+        <TextView
+            android:id="@+id/widget_day"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginLeft="8dp"
+            android:paddingBottom="3dp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="#A7BEC2"
+            android:textSize="13sp"
+            android:text="" />
+    </LinearLayout>
 </LinearLayout>

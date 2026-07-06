@@ -19,11 +19,16 @@ class ReminderWidgetProvider : HomeWidgetProvider() {
     ) {
         for (id in appWidgetIds) {
             val views = RemoteViews(context.packageName, R.layout.reminder_widget).apply {
+                setTextViewText(R.id.widget_label, widgetData.getString("label", "TAKNA"))
                 setTextViewText(
                     R.id.widget_title,
-                    widgetData.getString("title", "No upcoming reminders"),
+                    widgetData.getString("title", "Nothing scheduled"),
                 )
-                setTextViewText(R.id.widget_when, widgetData.getString("when", ""))
+                setTextViewText(R.id.widget_time, widgetData.getString("time", ""))
+                setTextViewText(
+                    R.id.widget_day,
+                    widgetData.getString("day", "Tap to add a reminder"),
+                )
                 setOnClickPendingIntent(
                     R.id.widget_root,
                     HomeWidgetLaunchIntent.getActivity(context, MainActivity::class.java),

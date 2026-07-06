@@ -43,7 +43,7 @@ void main() {
 
     expect(snap, isNotNull);
     expect(snap!.title, 'Soon');
-    expect(snap.when, contains(DateFormat('h:mm a').format(soon)));
+    expect(snap.time, DateFormat('h:mm a').format(soon));
   });
 
   test('ignores disabled and past reminders even if earlier', () {
@@ -73,20 +73,20 @@ void main() {
     ], now);
 
     expect(snap!.title, 'Snoozed');
-    expect(snap.when, contains(DateFormat('h:mm a').format(snoozeAt)));
+    expect(snap.time, DateFormat('h:mm a').format(snoozeAt));
   });
 
-  test('same-day when is a bare time; a future day carries a day-label prefix', () {
+  test('day label reads Today for same-day, date for a future day', () {
     final todaySnap = nextReminderSnapshot(
         [_r(id: 't', start: now.add(const Duration(hours: 2)))], now);
-    expect(todaySnap!.when, DateFormat('h:mm a').format(now.add(const Duration(hours: 2))));
-    expect(todaySnap.when, isNot(contains('·')));
+    expect(todaySnap!.day, 'Today');
+    expect(todaySnap.time, DateFormat('h:mm a').format(now.add(const Duration(hours: 2))));
 
     final threeDaysOut = now.add(const Duration(days: 3));
     final futureSnap =
         nextReminderSnapshot([_r(id: 'f', start: threeDaysOut)], now);
-    expect(futureSnap!.when, contains('·'));
-    expect(futureSnap.when, contains(DateFormat('h:mm a').format(threeDaysOut)));
+    expect(futureSnap!.day, DateFormat('EEE, MMM d').format(threeDaysOut));
+    expect(futureSnap.time, DateFormat('h:mm a').format(threeDaysOut));
   });
 
   test('empty and all-disabled lists return null', () {

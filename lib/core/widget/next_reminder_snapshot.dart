@@ -7,11 +7,12 @@ import 'package:intl/intl.dart';
 import '../../features/reminders/domain/recurrence.dart';
 import '../database/database.dart';
 
-/// Title + when-label for the earliest upcoming *enabled* reminder relative to
-/// [now], or null when nothing is upcoming. Pure — no platform channel.
-/// Selection matches the home hero (effectiveNextFire, earliest wins) so the
-/// app and the widget never disagree.
-({String title, String when})? nextReminderSnapshot(
+/// Title + day/time labels for the earliest upcoming *enabled* reminder
+/// relative to [now], or null when nothing is upcoming. Pure — no platform
+/// channel. Selection matches the home hero (effectiveNextFire, earliest wins)
+/// so the app and the widget never disagree. Day and time stay separate so the
+/// widget can typeset them like the hero card (small day, big time).
+({String title, String day, String time})? nextReminderSnapshot(
     List<Reminder> reminders, DateTime now) {
   ({Reminder r, DateTime at})? best;
   for (final r in reminders) {
@@ -22,13 +23,11 @@ import '../database/database.dart';
     }
   }
   if (best == null) return null;
-  final at = best.at;
-  // Same phrasing as the home list row: bare time when it's today, else a
-  // day-label prefix (mirrors home_screen _dayLabel + 'h:mm a').
-  final time = DateFormat('h:mm a').format(at);
-  final when =
-      DateUtils.isSameDay(at, now) ? time : '${_dayLabel(at, now)} · $time';
-  return (title: best.r.title, when: when);
+  return (
+    title: best.r.title,
+    day: _dayLabel(best.at, now),
+    time: DateFormat('h:mm a').format(best.at),
+  );
 }
 
 /// Today / Tomorrow / date — pure twin of home_screen's `_dayLabel` (takes an
@@ -47,9 +46,13 @@ Future<void> pushNextReminder(List<Reminder> reminders, DateTime now) async {
   if (!Platform.isAndroid) return; // ponytail: iOS widget = separate plan
   final snap = nextReminderSnapshot(reminders, now);
   try {
+    // Empty state is styled on the native side; the eyebrow label flips from
+    // NEXT ALARM to the app name so a blank widget still reads as Takna.
+    await HomeWidget.saveWidgetData('label', snap == null ? 'TAKNA' : 'NEXT ALARM');
+    await HomeWidget.saveWidgetData('title', snap?.title ?? 'Nothing scheduled');
     await HomeWidget.saveWidgetData(
-        'title', snap?.title ?? 'No upcoming reminders');
-    await HomeWidget.saveWidgetData('when', snap?.when ?? '');
+        'day', snap?.day ?? 'Tap to add a reminder');
+    await HomeWidget.saveWidgetData('time', snap?.time ?? '');
     await HomeWidget.updateWidget(androidName: 'ReminderWidgetProvider');
   } catch (_) {
     // No channel / no widget placed → never break reconcile.
