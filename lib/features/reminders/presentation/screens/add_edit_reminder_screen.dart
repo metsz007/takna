@@ -27,6 +27,7 @@ class AddEditReminderScreen extends ConsumerStatefulWidget {
 class _AddEditState extends ConsumerState<AddEditReminderScreen> {
   final _title = TextEditingController();
   final _notes = TextEditingController();
+  final _tag = TextEditingController();
   DateTime _date = DateTime.now().add(const Duration(hours: 1));
   String? _rrule;
   int _offset = 0;
@@ -99,6 +100,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
   void _fillFrom(Reminder r, {required bool asCopy}) {
     _title.text = r.title;
     _notes.text = r.notes ?? '';
+    _tag.text = r.tag ?? '';
     _date = r.startDateTime;
     _rrule = r.rruleString;
     _offset = r.offsetMinutes;
@@ -148,6 +150,10 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
       // schedule (create mode: _loadedDate is null, so scheduleChanged is true).
       isEnabled: _isEnabled || scheduleChanged,
       isAlarm: _isAlarm,
+      // ponytail: free text, no length cap and no autocomplete against existing
+      // tags — trim-to-null is the whole input. Add suggestions only if typos
+      // become a real complaint.
+      tag: _tag.text.trim().isEmpty ? null : _tag.text.trim(),
       createdAt: _createdAt ?? now,
       updatedAt: now,
     );
@@ -387,6 +393,27 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
                       value: _snooze,
                       labelOf: (v) => '$v min',
                       onChanged: (v) => setState(() => _snooze = v),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 11),
+                // tag card: single free-text tag for home filtering
+                TkCard(
+                  child: Row(children: [
+                    Icon(Icons.label_outline, size: 20, color: t.ic1),
+                    const SizedBox(width: 13),
+                    Expanded(
+                      child: TextField(
+                        controller: _tag,
+                        style: body(14, FontWeight.w600, t.ink),
+                        decoration: InputDecoration(
+                          hintText: 'Add a tag (optional)',
+                          hintStyle: body(14, FontWeight.w400, t.ink3),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
                     ),
                   ]),
                 ),

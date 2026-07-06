@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart'; // StateProvider (riverpod 3 legacy)
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
@@ -9,6 +10,14 @@ import '../../../../core/theme/widgets.dart';
 import '../../domain/recurrence.dart';
 import '../providers.dart';
 import '../widgets/reliability_banner.dart';
+
+/// Distinct non-null tags in use, sorted for a stable chip order. Derived in
+/// memory from the watched list — never stored (CLAUDE.md: no derived data).
+List<String> distinctTags(List<Reminder> rs) =>
+    (rs.map((r) => r.tag).whereType<String>().toSet().toList()..sort());
+
+/// Transient home filter: null = "All". Not persisted — reopening shows All.
+final tagFilterProvider = StateProvider<String?>((ref) => null);
 
 String _countdown(DateTime d) {
   final diff = d.difference(DateTime.now());
@@ -128,9 +137,15 @@ class _HomeList extends ConsumerWidget {
     final t = context.tk;
     final now = DateTime.now();
     final reliable = ref.watch(reliabilityProvider).value?.reliable ?? true;
+    final tags = distinctTags(reminders);
+    final raw = ref.watch(tagFilterProvider);
+    final sel = tags.contains(raw) ? raw : null; // clamp stale selection → All
+    final visible = sel == null
+        ? reminders
+        : [for (final r in reminders) if (r.tag == sel) r];
     ({Reminder r, DateTime at, bool snoozed})? hero;
     final nextAt = <String, ({DateTime at, bool snoozed})?>{};
-    for (final r in reminders) {
+    for (final r in visible) {
       final next = effectiveNextFire(r, now);
       nextAt[r.id] = next;
       if (r.isEnabled && next != null && (hero == null || next.at.isBefore(hero.at))) {
@@ -139,7 +154,7 @@ class _HomeList extends ConsumerWidget {
     }
     final today = <Reminder>[];
     final upcoming = <Reminder>[];
-    for (final r in reminders) {
+    for (final r in visible) {
       final at = nextAt[r.id]?.at;
       (at != null && DateUtils.isSameDay(at, now) ? today : upcoming).add(r);
     }
@@ -165,6 +180,7 @@ class _HomeList extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 110),
       children: [
         const _Header(),
+        if (tags.isNotEmpty) _TagChips(tags: tags, selected: sel),
         if (!reliable)
           const Padding(
             padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
@@ -178,6 +194,44 @@ class _HomeList extends ConsumerWidget {
         if (today.isNotEmpty) section('Today', today),
         if (upcoming.isNotEmpty) section('Upcoming', upcoming),
       ],
+    );
+  }
+}
+
+/// Horizontally scrollable filter chips: "All" plus one per distinct tag.
+/// ponytail: inline chips styled locally (like the weekday circles in add/edit),
+/// not a new TkChip widget — one caller doesn't earn an abstraction.
+class _TagChips extends ConsumerWidget {
+  const _TagChips({required this.tags, required this.selected});
+  final List<String> tags;
+  final String? selected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.tk;
+    Widget chip(String label, bool active, String? value) => GestureDetector(
+          onTap: () => ref.read(tagFilterProvider.notifier).state = value,
+          child: Container(
+            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: active ? t.accent : t.field,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: active ? t.accent : t.line),
+            ),
+            child: Text(label,
+                style: body(13, FontWeight.w600, active ? t.onAccent : t.ink2)),
+          ),
+        );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 0, 0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(children: [
+          chip('All', selected == null, null),
+          for (final tag in tags) chip(tag, tag == selected, tag),
+        ]),
+      ),
     );
   }
 }

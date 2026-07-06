@@ -19,6 +19,9 @@ class Reminders extends Table {
   // JSON array of millisecondsSinceEpoch ints, one per skipped occurrence.
   // Null = no skips. User input (an explicit skip), not derived data.
   TextColumn get skippedDates => text().nullable()();
+  // Optional free-text tag for home filtering. Single tag per reminder; distinct
+  // tags are derived in memory (never stored). Inert data — scheduler ignores it.
+  TextColumn get tag => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -49,7 +52,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -58,6 +61,7 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) await m.addColumn(reminders, reminders.isAlarm);
           if (from < 4) await m.createTable(firedEvents);
           if (from < 5) await m.addColumn(reminders, reminders.skippedDates);
+          if (from < 6) await m.addColumn(reminders, reminders.tag);
         },
       );
 

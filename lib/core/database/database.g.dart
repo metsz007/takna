@@ -146,6 +146,15 @@ class $RemindersTable extends Reminders
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _tagMeta = const VerificationMeta('tag');
+  @override
+  late final GeneratedColumn<String> tag = GeneratedColumn<String>(
+    'tag',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -182,6 +191,7 @@ class $RemindersTable extends Reminders
     isAlarm,
     snoozedUntil,
     skippedDates,
+    tag,
     createdAt,
     updatedAt,
   ];
@@ -292,6 +302,12 @@ class $RemindersTable extends Reminders
         ),
       );
     }
+    if (data.containsKey('tag')) {
+      context.handle(
+        _tagMeta,
+        tag.isAcceptableOrUnknown(data['tag']!, _tagMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -365,6 +381,10 @@ class $RemindersTable extends Reminders
         DriftSqlType.string,
         data['${effectivePrefix}skipped_dates'],
       ),
+      tag: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tag'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -395,6 +415,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
   final bool isAlarm;
   final DateTime? snoozedUntil;
   final String? skippedDates;
+  final String? tag;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Reminder({
@@ -410,6 +431,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     required this.isAlarm,
     this.snoozedUntil,
     this.skippedDates,
+    this.tag,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -435,6 +457,9 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     }
     if (!nullToAbsent || skippedDates != null) {
       map['skipped_dates'] = Variable<String>(skippedDates);
+    }
+    if (!nullToAbsent || tag != null) {
+      map['tag'] = Variable<String>(tag);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -463,6 +488,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       skippedDates: skippedDates == null && nullToAbsent
           ? const Value.absent()
           : Value(skippedDates),
+      tag: tag == null && nullToAbsent ? const Value.absent() : Value(tag),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -486,6 +512,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       isAlarm: serializer.fromJson<bool>(json['isAlarm']),
       snoozedUntil: serializer.fromJson<DateTime?>(json['snoozedUntil']),
       skippedDates: serializer.fromJson<String?>(json['skippedDates']),
+      tag: serializer.fromJson<String?>(json['tag']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -506,6 +533,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       'isAlarm': serializer.toJson<bool>(isAlarm),
       'snoozedUntil': serializer.toJson<DateTime?>(snoozedUntil),
       'skippedDates': serializer.toJson<String?>(skippedDates),
+      'tag': serializer.toJson<String?>(tag),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -524,6 +552,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     bool? isAlarm,
     Value<DateTime?> snoozedUntil = const Value.absent(),
     Value<String?> skippedDates = const Value.absent(),
+    Value<String?> tag = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Reminder(
@@ -539,6 +568,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     isAlarm: isAlarm ?? this.isAlarm,
     snoozedUntil: snoozedUntil.present ? snoozedUntil.value : this.snoozedUntil,
     skippedDates: skippedDates.present ? skippedDates.value : this.skippedDates,
+    tag: tag.present ? tag.value : this.tag,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -568,6 +598,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       skippedDates: data.skippedDates.present
           ? data.skippedDates.value
           : this.skippedDates,
+      tag: data.tag.present ? data.tag.value : this.tag,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -588,6 +619,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           ..write('isAlarm: $isAlarm, ')
           ..write('snoozedUntil: $snoozedUntil, ')
           ..write('skippedDates: $skippedDates, ')
+          ..write('tag: $tag, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -608,6 +640,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     isAlarm,
     snoozedUntil,
     skippedDates,
+    tag,
     createdAt,
     updatedAt,
   );
@@ -627,6 +660,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           other.isAlarm == this.isAlarm &&
           other.snoozedUntil == this.snoozedUntil &&
           other.skippedDates == this.skippedDates &&
+          other.tag == this.tag &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -644,6 +678,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
   final Value<bool> isAlarm;
   final Value<DateTime?> snoozedUntil;
   final Value<String?> skippedDates;
+  final Value<String?> tag;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -660,6 +695,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     this.isAlarm = const Value.absent(),
     this.snoozedUntil = const Value.absent(),
     this.skippedDates = const Value.absent(),
+    this.tag = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -677,6 +713,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     this.isAlarm = const Value.absent(),
     this.snoozedUntil = const Value.absent(),
     this.skippedDates = const Value.absent(),
+    this.tag = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -699,6 +736,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     Expression<bool>? isAlarm,
     Expression<DateTime>? snoozedUntil,
     Expression<String>? skippedDates,
+    Expression<String>? tag,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -716,6 +754,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
       if (isAlarm != null) 'is_alarm': isAlarm,
       if (snoozedUntil != null) 'snoozed_until': snoozedUntil,
       if (skippedDates != null) 'skipped_dates': skippedDates,
+      if (tag != null) 'tag': tag,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -735,6 +774,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     Value<bool>? isAlarm,
     Value<DateTime?>? snoozedUntil,
     Value<String?>? skippedDates,
+    Value<String?>? tag,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -752,6 +792,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
       isAlarm: isAlarm ?? this.isAlarm,
       snoozedUntil: snoozedUntil ?? this.snoozedUntil,
       skippedDates: skippedDates ?? this.skippedDates,
+      tag: tag ?? this.tag,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -797,6 +838,9 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     if (skippedDates.present) {
       map['skipped_dates'] = Variable<String>(skippedDates.value);
     }
+    if (tag.present) {
+      map['tag'] = Variable<String>(tag.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -824,6 +868,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
           ..write('isAlarm: $isAlarm, ')
           ..write('snoozedUntil: $snoozedUntil, ')
           ..write('skippedDates: $skippedDates, ')
+          ..write('tag: $tag, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -1202,6 +1247,7 @@ typedef $$RemindersTableCreateCompanionBuilder =
       Value<bool> isAlarm,
       Value<DateTime?> snoozedUntil,
       Value<String?> skippedDates,
+      Value<String?> tag,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -1220,6 +1266,7 @@ typedef $$RemindersTableUpdateCompanionBuilder =
       Value<bool> isAlarm,
       Value<DateTime?> snoozedUntil,
       Value<String?> skippedDates,
+      Value<String?> tag,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -1291,6 +1338,11 @@ class $$RemindersTableFilterComposer
 
   ColumnFilters<String> get skippedDates => $composableBuilder(
     column: $table.skippedDates,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tag => $composableBuilder(
+    column: $table.tag,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1374,6 +1426,11 @@ class $$RemindersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get tag => $composableBuilder(
+    column: $table.tag,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -1442,6 +1499,9 @@ class $$RemindersTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get tag =>
+      $composableBuilder(column: $table.tag, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -1489,6 +1549,7 @@ class $$RemindersTableTableManager
                 Value<bool> isAlarm = const Value.absent(),
                 Value<DateTime?> snoozedUntil = const Value.absent(),
                 Value<String?> skippedDates = const Value.absent(),
+                Value<String?> tag = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -1505,6 +1566,7 @@ class $$RemindersTableTableManager
                 isAlarm: isAlarm,
                 snoozedUntil: snoozedUntil,
                 skippedDates: skippedDates,
+                tag: tag,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -1523,6 +1585,7 @@ class $$RemindersTableTableManager
                 Value<bool> isAlarm = const Value.absent(),
                 Value<DateTime?> snoozedUntil = const Value.absent(),
                 Value<String?> skippedDates = const Value.absent(),
+                Value<String?> tag = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -1539,6 +1602,7 @@ class $$RemindersTableTableManager
                 isAlarm: isAlarm,
                 snoozedUntil: snoozedUntil,
                 skippedDates: skippedDates,
+                tag: tag,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
