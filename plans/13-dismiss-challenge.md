@@ -1,5 +1,5 @@
 ---
-status: planned
+status: in-progress
 verified-by:
   - test/challenge_test.dart
   - test/alarm_challenge_test.dart
