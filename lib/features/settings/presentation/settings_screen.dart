@@ -63,6 +63,10 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
     final notifGranted = reliability.value?.notifications ?? true;
     final exactGranted = reliability.value?.exactAlarm ?? true;
     final batteryUnrestricted = ref.watch(batteryUnrestrictedProvider).value ?? false;
+    // A stale past pausedUntil is inert — treat it as not paused for display.
+    final rawPaused = ref.watch(pausedUntilProvider).value;
+    final pausedUntil =
+        (rawPaused != null && rawPaused.isAfter(DateTime.now())) ? rawPaused : null;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -202,6 +206,14 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
                       ]),
                     ),
                   ),
+                  const TkSectionLabel('Vacation'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: TkCard(
+                      padding: EdgeInsets.zero,
+                      child: _vacationRow(pausedUntil),
+                    ),
+                  ),
                   const TkSectionLabel('Appearance'),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -309,6 +321,51 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
         ]),
       ),
     );
+  }
+
+  // Not paused → a "Pause all alarms" row that opens a date picker. Paused →
+  // "Paused until <date>" with a Resume button (styled like the _permRow Allow).
+  Widget _vacationRow(DateTime? pausedUntil) {
+    final t = context.tk;
+    if (pausedUntil == null) {
+      return _dataRow(Icons.beach_access_outlined, 'Pause all alarms', _pickPause);
+    }
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 15, 16, 15),
+      child: Row(children: [
+        Icon(Icons.pause_circle_outline, size: 20, color: t.ic1),
+        const SizedBox(width: 12),
+        Expanded(
+            child: Text('Paused until ${DateFormat('MMM d, y').format(pausedUntil)}',
+                style: body(14, FontWeight.w600, t.ink))),
+        GestureDetector(
+          onTap: () async {
+            await ref.read(reminderRepositoryProvider).setPausedUntil(null);
+            ref.invalidate(pausedUntilProvider);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration:
+                BoxDecoration(color: t.accent, borderRadius: BorderRadius.circular(20)),
+            child: Text('Resume', style: body(11, FontWeight.w700, t.onAccent)),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Future<void> _pickPause() async {
+    final today = DateUtils.dateOnly(DateTime.now());
+    final picked = await showDatePicker(
+      context: context,
+      firstDate: today.add(const Duration(days: 1)),
+      lastDate: today.add(const Duration(days: 365)),
+      initialDate: today.add(const Duration(days: 1)),
+      helpText: 'Resume alarms on',
+    );
+    if (picked == null) return; // cancelled — no change
+    await ref.read(reminderRepositoryProvider).setPausedUntil(picked);
+    ref.invalidate(pausedUntilProvider);
   }
 
   Future<void> _export() async {

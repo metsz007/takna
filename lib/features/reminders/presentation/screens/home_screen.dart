@@ -180,6 +180,7 @@ class _HomeList extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 110),
       children: [
         const _Header(),
+        const _PauseBanner(),
         if (tags.isNotEmpty) _TagChips(tags: tags, selected: sel),
         if (!reliable)
           const Padding(
@@ -230,6 +231,52 @@ class _TagChips extends ConsumerWidget {
         child: Row(children: [
           chip('All', selected == null, null),
           for (final tag in tags) chip(tag, tag == selected, tag),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Unmissable "all alarms paused" banner. A silent pause is the worst bug in
+/// this app's terms, so this is loud (accent-filled) with an inline Resume.
+/// Renders nothing when not paused; a stale past pausedUntil counts as not
+/// paused.
+class _PauseBanner extends ConsumerWidget {
+  const _PauseBanner();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final t = context.tk;
+    final raw = ref.watch(pausedUntilProvider).value;
+    if (raw == null || !raw.isAfter(DateTime.now())) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(15, 14, 12, 14),
+        decoration:
+            BoxDecoration(color: t.accent, borderRadius: BorderRadius.circular(14)),
+        child: Row(children: [
+          const Icon(Icons.pause_circle_filled, size: 20, color: Color(0xFF173B44)),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Text(
+                'All alarms paused until ${DateFormat('MMM d, y').format(raw)}',
+                style: body(13, FontWeight.w700, const Color(0xFF173B44), height: 1.35)),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () async {
+              await ref.read(reminderRepositoryProvider).setPausedUntil(null);
+              ref.invalidate(pausedUntilProvider);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+              decoration: BoxDecoration(
+                  color: const Color(0xFF173B44),
+                  borderRadius: BorderRadius.circular(20)),
+              child: Text('Resume', style: body(12, FontWeight.w700, Colors.white)),
+            ),
+          ),
         ]),
       ),
     );

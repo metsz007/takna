@@ -1270,16 +1270,227 @@ class FiredEventsCompanion extends UpdateCompanion<FiredEvent> {
   }
 }
 
+class $AppStateTable extends AppState
+    with TableInfo<$AppStateTable, AppStateData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AppStateTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _pausedUntilMeta = const VerificationMeta(
+    'pausedUntil',
+  );
+  @override
+  late final GeneratedColumn<DateTime> pausedUntil = GeneratedColumn<DateTime>(
+    'paused_until',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, pausedUntil];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'app_state';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AppStateData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('paused_until')) {
+      context.handle(
+        _pausedUntilMeta,
+        pausedUntil.isAcceptableOrUnknown(
+          data['paused_until']!,
+          _pausedUntilMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AppStateData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppStateData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      pausedUntil: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}paused_until'],
+      ),
+    );
+  }
+
+  @override
+  $AppStateTable createAlias(String alias) {
+    return $AppStateTable(attachedDatabase, alias);
+  }
+}
+
+class AppStateData extends DataClass implements Insertable<AppStateData> {
+  final int id;
+  final DateTime? pausedUntil;
+  const AppStateData({required this.id, this.pausedUntil});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || pausedUntil != null) {
+      map['paused_until'] = Variable<DateTime>(pausedUntil);
+    }
+    return map;
+  }
+
+  AppStateCompanion toCompanion(bool nullToAbsent) {
+    return AppStateCompanion(
+      id: Value(id),
+      pausedUntil: pausedUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pausedUntil),
+    );
+  }
+
+  factory AppStateData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppStateData(
+      id: serializer.fromJson<int>(json['id']),
+      pausedUntil: serializer.fromJson<DateTime?>(json['pausedUntil']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'pausedUntil': serializer.toJson<DateTime?>(pausedUntil),
+    };
+  }
+
+  AppStateData copyWith({
+    int? id,
+    Value<DateTime?> pausedUntil = const Value.absent(),
+  }) => AppStateData(
+    id: id ?? this.id,
+    pausedUntil: pausedUntil.present ? pausedUntil.value : this.pausedUntil,
+  );
+  AppStateData copyWithCompanion(AppStateCompanion data) {
+    return AppStateData(
+      id: data.id.present ? data.id.value : this.id,
+      pausedUntil: data.pausedUntil.present
+          ? data.pausedUntil.value
+          : this.pausedUntil,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppStateData(')
+          ..write('id: $id, ')
+          ..write('pausedUntil: $pausedUntil')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, pausedUntil);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppStateData &&
+          other.id == this.id &&
+          other.pausedUntil == this.pausedUntil);
+}
+
+class AppStateCompanion extends UpdateCompanion<AppStateData> {
+  final Value<int> id;
+  final Value<DateTime?> pausedUntil;
+  const AppStateCompanion({
+    this.id = const Value.absent(),
+    this.pausedUntil = const Value.absent(),
+  });
+  AppStateCompanion.insert({
+    this.id = const Value.absent(),
+    this.pausedUntil = const Value.absent(),
+  });
+  static Insertable<AppStateData> custom({
+    Expression<int>? id,
+    Expression<DateTime>? pausedUntil,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (pausedUntil != null) 'paused_until': pausedUntil,
+    });
+  }
+
+  AppStateCompanion copyWith({Value<int>? id, Value<DateTime?>? pausedUntil}) {
+    return AppStateCompanion(
+      id: id ?? this.id,
+      pausedUntil: pausedUntil ?? this.pausedUntil,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (pausedUntil.present) {
+      map['paused_until'] = Variable<DateTime>(pausedUntil.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppStateCompanion(')
+          ..write('id: $id, ')
+          ..write('pausedUntil: $pausedUntil')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $RemindersTable reminders = $RemindersTable(this);
   late final $FiredEventsTable firedEvents = $FiredEventsTable(this);
+  late final $AppStateTable appState = $AppStateTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [reminders, firedEvents];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    reminders,
+    firedEvents,
+    appState,
+  ];
 }
 
 typedef $$RemindersTableCreateCompanionBuilder =
@@ -1893,6 +2104,133 @@ typedef $$FiredEventsTableProcessedTableManager =
       FiredEvent,
       PrefetchHooks Function()
     >;
+typedef $$AppStateTableCreateCompanionBuilder =
+    AppStateCompanion Function({Value<int> id, Value<DateTime?> pausedUntil});
+typedef $$AppStateTableUpdateCompanionBuilder =
+    AppStateCompanion Function({Value<int> id, Value<DateTime?> pausedUntil});
+
+class $$AppStateTableFilterComposer
+    extends Composer<_$AppDatabase, $AppStateTable> {
+  $$AppStateTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get pausedUntil => $composableBuilder(
+    column: $table.pausedUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AppStateTableOrderingComposer
+    extends Composer<_$AppDatabase, $AppStateTable> {
+  $$AppStateTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get pausedUntil => $composableBuilder(
+    column: $table.pausedUntil,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AppStateTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AppStateTable> {
+  $$AppStateTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get pausedUntil => $composableBuilder(
+    column: $table.pausedUntil,
+    builder: (column) => column,
+  );
+}
+
+class $$AppStateTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AppStateTable,
+          AppStateData,
+          $$AppStateTableFilterComposer,
+          $$AppStateTableOrderingComposer,
+          $$AppStateTableAnnotationComposer,
+          $$AppStateTableCreateCompanionBuilder,
+          $$AppStateTableUpdateCompanionBuilder,
+          (
+            AppStateData,
+            BaseReferences<_$AppDatabase, $AppStateTable, AppStateData>,
+          ),
+          AppStateData,
+          PrefetchHooks Function()
+        > {
+  $$AppStateTableTableManager(_$AppDatabase db, $AppStateTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AppStateTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AppStateTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AppStateTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime?> pausedUntil = const Value.absent(),
+              }) => AppStateCompanion(id: id, pausedUntil: pausedUntil),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<DateTime?> pausedUntil = const Value.absent(),
+              }) => AppStateCompanion.insert(id: id, pausedUntil: pausedUntil),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AppStateTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AppStateTable,
+      AppStateData,
+      $$AppStateTableFilterComposer,
+      $$AppStateTableOrderingComposer,
+      $$AppStateTableAnnotationComposer,
+      $$AppStateTableCreateCompanionBuilder,
+      $$AppStateTableUpdateCompanionBuilder,
+      (
+        AppStateData,
+        BaseReferences<_$AppDatabase, $AppStateTable, AppStateData>,
+      ),
+      AppStateData,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1901,4 +2239,6 @@ class $AppDatabaseManager {
       $$RemindersTableTableManager(_db, _db.reminders);
   $$FiredEventsTableTableManager get firedEvents =>
       $$FiredEventsTableTableManager(_db, _db.firedEvents);
+  $$AppStateTableTableManager get appState =>
+      $$AppStateTableTableManager(_db, _db.appState);
 }

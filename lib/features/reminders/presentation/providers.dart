@@ -44,6 +44,12 @@ final alarmReportProvider = FutureProvider.autoDispose<AlarmReport>((ref) async 
 
 final prefsProvider = FutureProvider((ref) => SharedPreferences.getInstance());
 
+/// Global vacation-pause resume timestamp (null = not paused). Read from the DB
+/// so it's consistent across isolates. Callers `ref.invalidate` after a set,
+/// same pattern as [reliabilityProvider].
+final pausedUntilProvider =
+    FutureProvider((ref) => ref.watch(databaseProvider).getPausedUntil());
+
 /// The two *hard* permissions an alarm needs to actually ring. Battery
 /// optimization is deliberately excluded (unreliable across OEMs — a
 /// settings-only affordance, not a warning signal).

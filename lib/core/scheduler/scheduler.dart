@@ -41,6 +41,14 @@ class Scheduler {
     var reminders = await _db.getEnabled();
     final now = DateTime.now();
 
+    // Vacation pause: while now < pausedUntil, schedule nothing before it but
+    // still pre-queue the occurrences after it — those pre-scheduled fires are
+    // what auto-resume alarms without an app open. A stale past pausedUntil is
+    // inert (floor collapses to now). The fired-one-time-disable block below
+    // stays on real `now` on purpose.
+    final paused = await _db.getPausedUntil();
+    final floor = (paused != null && paused.isAfter(now)) ? paused : now;
+
     // Google Clock pattern: a fired one-time reminder flips its toggle off so
     // it stops sitting in the list as enabled with "No upcoming". A pending
     // snooze keeps it alive — that occurrence must still fire, and it gets
@@ -60,12 +68,12 @@ class Scheduler {
     for (final r in reminders) {
       // A pending snooze fires at its exact time (no offset).
       final snooze = r.snoozedUntil;
-      if (snooze != null && snooze.isAfter(now)) {
+      if (snooze != null && snooze.isAfter(floor)) {
         occurrences.add((r: r, fireAt: snooze));
       }
-      for (final occ in nextOccurrences(r, now, _perReminder)) {
+      for (final occ in nextOccurrences(r, floor, _perReminder)) {
         final fireAt = occ.subtract(Duration(minutes: r.offsetMinutes));
-        if (fireAt.isAfter(now)) occurrences.add((r: r, fireAt: fireAt));
+        if (fireAt.isAfter(floor)) occurrences.add((r: r, fireAt: fireAt));
       }
     }
     occurrences.sort((a, b) => a.fireAt.compareTo(b.fireAt));

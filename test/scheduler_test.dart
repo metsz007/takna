@@ -7,6 +7,7 @@ import 'package:takna/core/scheduler/scheduler.dart';
 /// Records schedule/cancelAll calls instead of touching the plugin.
 class _FakeNotifications extends NotificationService {
   final scheduled = <String>[]; // reminderIds scheduled
+  final whens = <DateTime>[]; // fire time of each scheduled occurrence
   int cancelAllCount = 0;
 
   @override
@@ -23,6 +24,7 @@ class _FakeNotifications extends NotificationService {
     bool isAlarm = true,
   }) async {
     scheduled.add(reminderId);
+    whens.add(when);
   }
 }
 
@@ -140,6 +142,52 @@ void main() {
     await scheduler.reconcile();
 
     expect((await db.getById('f'))!.isEnabled, isTrue);
+  });
+
+  test('pause: nothing scheduled before pausedUntil, occurrences after it are',
+      () async {
+    final pausedUntil = now.add(const Duration(days: 3));
+    await db.upsert(_r(id: 'p', rrule: 'FREQ=DAILY', start: past));
+    await db.setPausedUntil(pausedUntil);
+    await scheduler.reconcile();
+
+    // The reminder is still scheduled — just its post-pause occurrences.
+    expect(notifications.scheduled, contains('p'));
+    expect(notifications.whens, isNotEmpty);
+    // Every queued fire is at or after the pause end — nothing inside the window.
+    for (final w in notifications.whens) {
+      expect(w.isBefore(pausedUntil), isFalse);
+    }
+  });
+
+  test('pause: one-time inside the window is suppressed, one after is not',
+      () async {
+    await db.upsert(_r(id: 'before', start: now.add(const Duration(hours: 1))));
+    await db.upsert(_r(id: 'after', start: now.add(const Duration(days: 2))));
+    await db.setPausedUntil(now.add(const Duration(days: 1)));
+    await scheduler.reconcile();
+
+    expect(notifications.scheduled, contains('after'));
+    expect(notifications.scheduled, isNot(contains('before')));
+  });
+
+  test('pause: a stale past pausedUntil is inert (normal scheduling)', () async {
+    await db.upsert(_r(id: 's', start: future));
+    await db.setPausedUntil(now.subtract(const Duration(days: 1)));
+    await scheduler.reconcile();
+
+    expect(notifications.scheduled, contains('s'));
+  });
+
+  test('pause: resume (clearing) restores normal scheduling', () async {
+    await db.upsert(_r(id: 'r', start: now.add(const Duration(hours: 1))));
+    await db.setPausedUntil(now.add(const Duration(days: 1)));
+    await scheduler.reconcile();
+    expect(notifications.scheduled, isNot(contains('r'))); // suppressed while paused
+
+    await db.setPausedUntil(null); // Resume
+    await scheduler.reconcile();
+    expect(notifications.scheduled, contains('r'));
   });
 
   test('concurrent reconcile() calls are serialized (no interleave)', () async {

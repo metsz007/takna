@@ -45,7 +45,22 @@ class FiredEvents extends Table {
   DateTimeColumn get firedAt => dateTime()();
 }
 
-@DriftDatabase(tables: [Reminders, FiredEvents])
+/// Single-row global app state that must be visible in every isolate. Lives in
+/// the DB (not shared_preferences) because reconcile() also runs in the
+/// notification background isolate, and the shared DB is the only cross-isolate
+/// source of truth.
+// ponytail: one-column single-row table, not a generic key/value store — one
+// setting doesn't earn a KV schema. Widen to KV only when a second
+// cross-isolate setting appears.
+class AppState extends Table {
+  IntColumn get id => integer().withDefault(const Constant(0))();
+  DateTimeColumn get pausedUntil => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DriftDatabase(tables: [Reminders, FiredEvents, AppState])
 class AppDatabase extends _$AppDatabase {
   // shareAcrossIsolates: the notification background isolate (snooze from
   // the shade) writes to the same DB while the app may be running.
@@ -56,7 +71,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -67,6 +82,7 @@ class AppDatabase extends _$AppDatabase {
           if (from < 5) await m.addColumn(reminders, reminders.skippedDates);
           if (from < 6) await m.addColumn(reminders, reminders.tag);
           if (from < 7) await m.addColumn(reminders, reminders.challenge);
+          if (from < 8) await m.createTable(appState);
         },
       );
 
@@ -119,4 +135,19 @@ class AppDatabase extends _$AppDatabase {
         ..orderBy([(t) => OrderingTerm.desc(t.firedAt)])
         ..limit(1))
       .getSingleOrNull();
+
+  /// Global "pause all alarms until" timestamp, or null if not paused. A stale
+  /// past value reads as not-paused (the scheduler treats it as inert).
+  Future<DateTime?> getPausedUntil() async =>
+      (await (select(appState)..where((t) => t.id.equals(0)))
+              .getSingleOrNull())
+          ?.pausedUntil;
+
+  // id pinned to 0: an INTEGER PRIMARY KEY is a rowid alias, so an absent id
+  // auto-increments (a new row per write) instead of using the column default.
+  // Pinning keeps this a true single-row table that insertOnConflictUpdate
+  // overwrites in place.
+  Future<void> setPausedUntil(DateTime? until) => into(appState)
+      .insertOnConflictUpdate(
+          AppStateCompanion.insert(id: const Value(0), pausedUntil: Value(until)));
 }

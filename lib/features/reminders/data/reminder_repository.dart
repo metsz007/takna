@@ -68,6 +68,14 @@ class ReminderRepository {
     await _scheduler.reconcile();
   }
 
+  /// Global vacation pause. [until] is the resume timestamp, or null to resume
+  /// now. Goes through the DB (cross-isolate source of truth) then reconciles,
+  /// keeping the single write path intact.
+  Future<void> setPausedUntil(DateTime? until) async {
+    await _db.setPausedUntil(until);
+    await _scheduler.reconcile();
+  }
+
   /// All reminders, one-shot (for export).
   Future<List<Reminder>> getAll() => _db.watchAll().first;
 
