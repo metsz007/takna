@@ -42,7 +42,14 @@ class _OnboardingState extends ConsumerState<OnboardingScreen> {
     final ready = _notif && _alarm;
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        // Scrolls on short screens; ConstrainedBox+IntrinsicHeight keeps the
+        // Spacer pinning the button to the bottom on tall ones.
+        child: LayoutBuilder(
+          builder: (context, constraints) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Padding(
           padding: const EdgeInsets.fromLTRB(26, 40, 26, 40),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
@@ -119,6 +126,10 @@ class _OnboardingState extends ConsumerState<OnboardingScreen> {
               ),
             ),
           ]),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
