@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/reminders/presentation/screens/add_edit_reminder_screen.dart';
 import '../../features/reminders/presentation/screens/alarm_screen.dart';
+import '../../features/reminders/presentation/screens/history_screen.dart';
 import '../../features/reminders/presentation/screens/home_screen.dart';
 import '../../features/reminders/presentation/screens/reminder_detail_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
@@ -101,6 +102,10 @@ GoRouter buildRouter({required bool onboarded}) => GoRouter(
             pageBuilder: (_, s) => _fadePage(
                 s, ReminderDetailScreen(reminderId: s.pathParameters['id']!),
                 slide: true)),
+        GoRoute(
+            path: '/history',
+            pageBuilder: (_, s) =>
+                _fadePage(s, const HistoryScreen(), slide: true)),
         GoRoute(
             path: '/alarm',
             pageBuilder: (_, s) =>

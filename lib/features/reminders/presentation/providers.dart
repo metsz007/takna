@@ -7,6 +7,7 @@ import '../../../core/database/database.dart';
 import '../../../core/notifications/notification_service.dart';
 import '../../../core/scheduler/scheduler.dart';
 import '../data/reminder_repository.dart';
+import '../domain/alarm_report.dart';
 
 final databaseProvider = Provider((ref) => AppDatabase());
 
@@ -31,6 +32,15 @@ final reminderByIdProvider = FutureProvider.family<Reminder?, String>(
 // before the first fire would otherwise hide the line forever.
 final lastFiredProvider = FutureProvider.autoDispose.family<FiredEvent?, String>(
     (ref, id) => ref.watch(databaseProvider).lastFired(id));
+
+// autoDispose: re-read fresh events on every screen open, same reasoning as
+// lastFiredProvider.
+final alarmReportProvider = FutureProvider.autoDispose<AlarmReport>((ref) async {
+  ref.watch(remindersStreamProvider); // rebuild on any reminder change
+  final db = ref.watch(databaseProvider);
+  final reminders = await ref.watch(reminderRepositoryProvider).getAll();
+  return buildAlarmReport(reminders, await db.allEvents(), DateTime.now());
+});
 
 final prefsProvider = FutureProvider((ref) => SharedPreferences.getInstance());
 

@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 verified-by:
   - test/alarm_report_test.dart
 ---

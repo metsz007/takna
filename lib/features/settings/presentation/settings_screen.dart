@@ -4,6 +4,7 @@ import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -129,8 +130,11 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
                           behavior: HitTestBehavior.opaque,
                           onTap: () => const MethodChannel('takna/settings')
                               .invokeMethod('openAlarmChannelSettings'),
-                          child: Padding(
+                          child: Container(
                             padding: const EdgeInsets.fromLTRB(16, 15, 16, 15),
+                            decoration: BoxDecoration(
+                                border:
+                                    Border(bottom: BorderSide(color: t.line))),
                             child: Row(children: [
                               Icon(Icons.music_note_outlined, size: 20, color: t.ic1),
                               const SizedBox(width: 12),
@@ -141,6 +145,8 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
                             ]),
                           ),
                         ),
+                        _dataRow(Icons.history, 'Alarm history',
+                            () => context.push('/history')),
                       ]),
                     ),
                   ),

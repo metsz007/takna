@@ -105,6 +105,10 @@ class AppDatabase extends _$AppDatabase {
         .go();
   }
 
+  Future<List<FiredEvent>> allEvents() => (select(firedEvents)
+        ..orderBy([(t) => OrderingTerm.desc(t.firedAt)]))
+      .get();
+
   Future<FiredEvent?> lastFired(String reminderId) => (select(firedEvents)
         ..where((t) => t.reminderId.equals(reminderId))
         ..orderBy([(t) => OrderingTerm.desc(t.firedAt)])

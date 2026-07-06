@@ -37,6 +37,16 @@ List<({DateTime at, bool skipped})> upcomingWithSkips(
       .toList();
 }
 
+/// Occurrence wall-times in [from, to), skip-filtered. Reuses the same lazy
+/// RRULE expansion as nextOccurrences; the window is expected small.
+List<DateTime> pastOccurrences(Reminder r, DateTime from, DateTime to) {
+  final skips = decodeSkips(r.skippedDates);
+  return _rawOccurrences(r, from)
+      .takeWhile((d) => d.isBefore(to))
+      .where((d) => !skips.contains(d.millisecondsSinceEpoch))
+      .toList();
+}
+
 Iterable<DateTime> _rawOccurrences(Reminder r, DateTime after) {
   if (r.rruleString == null) {
     return r.startDateTime.isAfter(after) ? [r.startDateTime] : [];
