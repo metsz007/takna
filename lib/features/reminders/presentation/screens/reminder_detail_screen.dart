@@ -27,6 +27,10 @@ class ReminderDetailScreen extends ConsumerWidget {
     return Scaffold(
       body: SafeArea(
         child: reminder.when(
+          // Keep showing current data while the provider reloads after a DB
+          // write (skip/snooze/edit) — otherwise the whole page flashes a
+          // spinner on every mutation.
+          skipLoadingOnReload: true,
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(
             child: Text("Couldn't load this reminder",
@@ -208,7 +212,12 @@ class ReminderDetailScreen extends ConsumerWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(children: [
+                  // Cross-fade when the occurrence set changes (e.g. skip).
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: Column(
+                        key: ValueKey(next5.map((d) => d.millisecondsSinceEpoch).join(',')),
+                        children: [
                     for (var i = 0; i < next5.length; i++)
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 4),
@@ -232,7 +241,8 @@ class ReminderDetailScreen extends ConsumerWidget {
                               style: display(13, FontWeight.w600, t.ink2)),
                         ]),
                       ),
-                  ]),
+                    ]),
+                  ),
                 ),
                 const Padding(
                   padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
