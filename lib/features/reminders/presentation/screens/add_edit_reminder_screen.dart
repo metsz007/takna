@@ -30,6 +30,10 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
   int _snooze = 5;
   bool _isAlarm = true;
   bool _loaded = false;
+  // Preserved across an edit so saving doesn't re-enable a paused reminder or
+  // reset its creation date. Defaults hold for create mode.
+  bool _isEnabled = true;
+  DateTime? _createdAt;
 
   bool get isEdit => widget.reminderId != null;
 
@@ -77,6 +81,8 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
         _offset = r.offsetMinutes;
         _snooze = r.snoozeMinutes;
         _isAlarm = r.isAlarm;
+        _isEnabled = r.isEnabled;
+        _createdAt = r.createdAt;
       }
     } else {
       final prefs = await SharedPreferences.getInstance();
@@ -109,9 +115,9 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
       rruleString: _rrule,
       offsetMinutes: _offset,
       snoozeMinutes: _snooze,
-      isEnabled: true,
+      isEnabled: _isEnabled,
       isAlarm: _isAlarm,
-      createdAt: now,
+      createdAt: _createdAt ?? now,
       updatedAt: now,
     );
     await ref.read(reminderRepositoryProvider).save(r);
