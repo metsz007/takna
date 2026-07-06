@@ -51,6 +51,7 @@ class Scheduler {
         when: o.fireAt,
         snoozeMinutes: o.r.snoozeMinutes,
         reminderId: o.r.id,
+        isAlarm: o.r.isAlarm,
       );
     }
   }

@@ -12,6 +12,7 @@ Reminder _r({String? rrule, required DateTime start}) => Reminder(
       offsetMinutes: 0,
       snoozeMinutes: 10,
       isEnabled: true,
+      isAlarm: true,
       createdAt: start,
       updatedAt: start,
     );

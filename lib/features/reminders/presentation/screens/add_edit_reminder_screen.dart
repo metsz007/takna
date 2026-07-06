@@ -28,6 +28,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
   String? _rrule;
   int _offset = 0;
   int _snooze = 5;
+  bool _isAlarm = true;
   bool _loaded = false;
 
   bool get isEdit => widget.reminderId != null;
@@ -75,6 +76,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
         _rrule = r.rruleString;
         _offset = r.offsetMinutes;
         _snooze = r.snoozeMinutes;
+        _isAlarm = r.isAlarm;
       }
     } else {
       final prefs = await SharedPreferences.getInstance();
@@ -108,6 +110,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
       offsetMinutes: _offset,
       snoozeMinutes: _snooze,
       isEnabled: true,
+      isAlarm: _isAlarm,
       createdAt: now,
       updatedAt: now,
     );
@@ -311,6 +314,24 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
                           if (custom != null) setState(() => _offset = custom);
                         },
                       ),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 11),
+                // alert style: full alarm vs plain notification
+                TkCard(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      Icon(Icons.alarm, size: 20, color: t.ic1),
+                      const SizedBox(width: 13),
+                      Text('Alert style', style: body(14, FontWeight.w600, t.ink)),
+                    ]),
+                    const SizedBox(height: 12),
+                    TkSegmented<bool>(
+                      options: const [true, false],
+                      value: _isAlarm,
+                      labelOf: (v) => v ? 'Alarm' : 'Notification',
+                      onChanged: (v) => setState(() => _isAlarm = v),
                     ),
                   ]),
                 ),

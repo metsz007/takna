@@ -13,6 +13,7 @@ class Reminders extends Table {
   IntColumn get offsetMinutes => integer().withDefault(const Constant(0))();
   IntColumn get snoozeMinutes => integer().withDefault(const Constant(10))();
   BoolColumn get isEnabled => boolean().withDefault(const Constant(true))();
+  BoolColumn get isAlarm => boolean().withDefault(const Constant(true))();
   DateTimeColumn get snoozedUntil => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
@@ -32,12 +33,13 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (m, from, to) async {
           if (from < 2) await m.addColumn(reminders, reminders.snoozedUntil);
+          if (from < 3) await m.addColumn(reminders, reminders.isAlarm);
         },
       );
 

@@ -109,6 +109,21 @@ class $RemindersTable extends Reminders
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _isAlarmMeta = const VerificationMeta(
+    'isAlarm',
+  );
+  @override
+  late final GeneratedColumn<bool> isAlarm = GeneratedColumn<bool>(
+    'is_alarm',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_alarm" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   static const VerificationMeta _snoozedUntilMeta = const VerificationMeta(
     'snoozedUntil',
   );
@@ -153,6 +168,7 @@ class $RemindersTable extends Reminders
     offsetMinutes,
     snoozeMinutes,
     isEnabled,
+    isAlarm,
     snoozedUntil,
     createdAt,
     updatedAt,
@@ -240,6 +256,12 @@ class $RemindersTable extends Reminders
         isEnabled.isAcceptableOrUnknown(data['is_enabled']!, _isEnabledMeta),
       );
     }
+    if (data.containsKey('is_alarm')) {
+      context.handle(
+        _isAlarmMeta,
+        isAlarm.isAcceptableOrUnknown(data['is_alarm']!, _isAlarmMeta),
+      );
+    }
     if (data.containsKey('snoozed_until')) {
       context.handle(
         _snoozedUntilMeta,
@@ -310,6 +332,10 @@ class $RemindersTable extends Reminders
         DriftSqlType.bool,
         data['${effectivePrefix}is_enabled'],
       )!,
+      isAlarm: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_alarm'],
+      )!,
       snoozedUntil: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}snoozed_until'],
@@ -341,6 +367,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
   final int offsetMinutes;
   final int snoozeMinutes;
   final bool isEnabled;
+  final bool isAlarm;
   final DateTime? snoozedUntil;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -354,6 +381,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     required this.offsetMinutes,
     required this.snoozeMinutes,
     required this.isEnabled,
+    required this.isAlarm,
     this.snoozedUntil,
     required this.createdAt,
     required this.updatedAt,
@@ -374,6 +402,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     map['offset_minutes'] = Variable<int>(offsetMinutes);
     map['snooze_minutes'] = Variable<int>(snoozeMinutes);
     map['is_enabled'] = Variable<bool>(isEnabled);
+    map['is_alarm'] = Variable<bool>(isAlarm);
     if (!nullToAbsent || snoozedUntil != null) {
       map['snoozed_until'] = Variable<DateTime>(snoozedUntil);
     }
@@ -397,6 +426,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       offsetMinutes: Value(offsetMinutes),
       snoozeMinutes: Value(snoozeMinutes),
       isEnabled: Value(isEnabled),
+      isAlarm: Value(isAlarm),
       snoozedUntil: snoozedUntil == null && nullToAbsent
           ? const Value.absent()
           : Value(snoozedUntil),
@@ -420,6 +450,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       offsetMinutes: serializer.fromJson<int>(json['offsetMinutes']),
       snoozeMinutes: serializer.fromJson<int>(json['snoozeMinutes']),
       isEnabled: serializer.fromJson<bool>(json['isEnabled']),
+      isAlarm: serializer.fromJson<bool>(json['isAlarm']),
       snoozedUntil: serializer.fromJson<DateTime?>(json['snoozedUntil']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -438,6 +469,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
       'offsetMinutes': serializer.toJson<int>(offsetMinutes),
       'snoozeMinutes': serializer.toJson<int>(snoozeMinutes),
       'isEnabled': serializer.toJson<bool>(isEnabled),
+      'isAlarm': serializer.toJson<bool>(isAlarm),
       'snoozedUntil': serializer.toJson<DateTime?>(snoozedUntil),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -454,6 +486,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     int? offsetMinutes,
     int? snoozeMinutes,
     bool? isEnabled,
+    bool? isAlarm,
     Value<DateTime?> snoozedUntil = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -467,6 +500,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     offsetMinutes: offsetMinutes ?? this.offsetMinutes,
     snoozeMinutes: snoozeMinutes ?? this.snoozeMinutes,
     isEnabled: isEnabled ?? this.isEnabled,
+    isAlarm: isAlarm ?? this.isAlarm,
     snoozedUntil: snoozedUntil.present ? snoozedUntil.value : this.snoozedUntil,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -490,6 +524,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           ? data.snoozeMinutes.value
           : this.snoozeMinutes,
       isEnabled: data.isEnabled.present ? data.isEnabled.value : this.isEnabled,
+      isAlarm: data.isAlarm.present ? data.isAlarm.value : this.isAlarm,
       snoozedUntil: data.snoozedUntil.present
           ? data.snoozedUntil.value
           : this.snoozedUntil,
@@ -510,6 +545,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           ..write('offsetMinutes: $offsetMinutes, ')
           ..write('snoozeMinutes: $snoozeMinutes, ')
           ..write('isEnabled: $isEnabled, ')
+          ..write('isAlarm: $isAlarm, ')
           ..write('snoozedUntil: $snoozedUntil, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -528,6 +564,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
     offsetMinutes,
     snoozeMinutes,
     isEnabled,
+    isAlarm,
     snoozedUntil,
     createdAt,
     updatedAt,
@@ -545,6 +582,7 @@ class Reminder extends DataClass implements Insertable<Reminder> {
           other.offsetMinutes == this.offsetMinutes &&
           other.snoozeMinutes == this.snoozeMinutes &&
           other.isEnabled == this.isEnabled &&
+          other.isAlarm == this.isAlarm &&
           other.snoozedUntil == this.snoozedUntil &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -560,6 +598,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
   final Value<int> offsetMinutes;
   final Value<int> snoozeMinutes;
   final Value<bool> isEnabled;
+  final Value<bool> isAlarm;
   final Value<DateTime?> snoozedUntil;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
@@ -574,6 +613,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     this.offsetMinutes = const Value.absent(),
     this.snoozeMinutes = const Value.absent(),
     this.isEnabled = const Value.absent(),
+    this.isAlarm = const Value.absent(),
     this.snoozedUntil = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -589,6 +629,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     this.offsetMinutes = const Value.absent(),
     this.snoozeMinutes = const Value.absent(),
     this.isEnabled = const Value.absent(),
+    this.isAlarm = const Value.absent(),
     this.snoozedUntil = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
@@ -609,6 +650,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     Expression<int>? offsetMinutes,
     Expression<int>? snoozeMinutes,
     Expression<bool>? isEnabled,
+    Expression<bool>? isAlarm,
     Expression<DateTime>? snoozedUntil,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -624,6 +666,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
       if (offsetMinutes != null) 'offset_minutes': offsetMinutes,
       if (snoozeMinutes != null) 'snooze_minutes': snoozeMinutes,
       if (isEnabled != null) 'is_enabled': isEnabled,
+      if (isAlarm != null) 'is_alarm': isAlarm,
       if (snoozedUntil != null) 'snoozed_until': snoozedUntil,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -641,6 +684,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     Value<int>? offsetMinutes,
     Value<int>? snoozeMinutes,
     Value<bool>? isEnabled,
+    Value<bool>? isAlarm,
     Value<DateTime?>? snoozedUntil,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -656,6 +700,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
       offsetMinutes: offsetMinutes ?? this.offsetMinutes,
       snoozeMinutes: snoozeMinutes ?? this.snoozeMinutes,
       isEnabled: isEnabled ?? this.isEnabled,
+      isAlarm: isAlarm ?? this.isAlarm,
       snoozedUntil: snoozedUntil ?? this.snoozedUntil,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -693,6 +738,9 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
     if (isEnabled.present) {
       map['is_enabled'] = Variable<bool>(isEnabled.value);
     }
+    if (isAlarm.present) {
+      map['is_alarm'] = Variable<bool>(isAlarm.value);
+    }
     if (snoozedUntil.present) {
       map['snoozed_until'] = Variable<DateTime>(snoozedUntil.value);
     }
@@ -720,6 +768,7 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
           ..write('offsetMinutes: $offsetMinutes, ')
           ..write('snoozeMinutes: $snoozeMinutes, ')
           ..write('isEnabled: $isEnabled, ')
+          ..write('isAlarm: $isAlarm, ')
           ..write('snoozedUntil: $snoozedUntil, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
@@ -751,6 +800,7 @@ typedef $$RemindersTableCreateCompanionBuilder =
       Value<int> offsetMinutes,
       Value<int> snoozeMinutes,
       Value<bool> isEnabled,
+      Value<bool> isAlarm,
       Value<DateTime?> snoozedUntil,
       required DateTime createdAt,
       required DateTime updatedAt,
@@ -767,6 +817,7 @@ typedef $$RemindersTableUpdateCompanionBuilder =
       Value<int> offsetMinutes,
       Value<int> snoozeMinutes,
       Value<bool> isEnabled,
+      Value<bool> isAlarm,
       Value<DateTime?> snoozedUntil,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -824,6 +875,11 @@ class $$RemindersTableFilterComposer
 
   ColumnFilters<bool> get isEnabled => $composableBuilder(
     column: $table.isEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isAlarm => $composableBuilder(
+    column: $table.isAlarm,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -897,6 +953,11 @@ class $$RemindersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get isAlarm => $composableBuilder(
+    column: $table.isAlarm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get snoozedUntil => $composableBuilder(
     column: $table.snoozedUntil,
     builder: (column) => ColumnOrderings(column),
@@ -957,6 +1018,9 @@ class $$RemindersTableAnnotationComposer
   GeneratedColumn<bool> get isEnabled =>
       $composableBuilder(column: $table.isEnabled, builder: (column) => column);
 
+  GeneratedColumn<bool> get isAlarm =>
+      $composableBuilder(column: $table.isAlarm, builder: (column) => column);
+
   GeneratedColumn<DateTime> get snoozedUntil => $composableBuilder(
     column: $table.snoozedUntil,
     builder: (column) => column,
@@ -1006,6 +1070,7 @@ class $$RemindersTableTableManager
                 Value<int> offsetMinutes = const Value.absent(),
                 Value<int> snoozeMinutes = const Value.absent(),
                 Value<bool> isEnabled = const Value.absent(),
+                Value<bool> isAlarm = const Value.absent(),
                 Value<DateTime?> snoozedUntil = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
@@ -1020,6 +1085,7 @@ class $$RemindersTableTableManager
                 offsetMinutes: offsetMinutes,
                 snoozeMinutes: snoozeMinutes,
                 isEnabled: isEnabled,
+                isAlarm: isAlarm,
                 snoozedUntil: snoozedUntil,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -1036,6 +1102,7 @@ class $$RemindersTableTableManager
                 Value<int> offsetMinutes = const Value.absent(),
                 Value<int> snoozeMinutes = const Value.absent(),
                 Value<bool> isEnabled = const Value.absent(),
+                Value<bool> isAlarm = const Value.absent(),
                 Value<DateTime?> snoozedUntil = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
@@ -1050,6 +1117,7 @@ class $$RemindersTableTableManager
                 offsetMinutes: offsetMinutes,
                 snoozeMinutes: snoozeMinutes,
                 isEnabled: isEnabled,
+                isAlarm: isAlarm,
                 snoozedUntil: snoozedUntil,
                 createdAt: createdAt,
                 updatedAt: updatedAt,

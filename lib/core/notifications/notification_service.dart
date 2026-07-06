@@ -23,11 +23,25 @@ final _channel = AndroidNotificationDetails(
   audioAttributesUsage: AudioAttributesUsage.alarm,
   fullScreenIntent: true,
   additionalFlags: Int32List.fromList([4]), // FLAG_INSISTENT: loops until dismissed
-  actions: const [
-    AndroidNotificationAction(snoozeActionId, 'Snooze', cancelNotification: true),
-    AndroidNotificationAction(dismissActionId, 'Dismiss', cancelNotification: true),
-  ],
+  actions: _actions,
 );
+
+// Notification-only mode: a normal heads-up notification — sounds once,
+// no full-screen takeover, no looping.
+final _notifChannel = AndroidNotificationDetails(
+  'takna_notifications',
+  'Notifications',
+  channelDescription: 'Reminders shown as regular notifications',
+  importance: Importance.high,
+  priority: Priority.high,
+  category: AndroidNotificationCategory.reminder,
+  actions: _actions,
+);
+
+const _actions = [
+  AndroidNotificationAction(snoozeActionId, 'Snooze', cancelNotification: true),
+  AndroidNotificationAction(dismissActionId, 'Dismiss', cancelNotification: true),
+];
 
 /// Payload format: "notificationId|snoozeMinutes|reminderId|title".
 ({int id, int snoozeMinutes, String reminderId, String title}) parsePayload(
@@ -138,6 +152,7 @@ class NotificationService {
     required DateTime when,
     required int snoozeMinutes,
     required String reminderId,
+    bool isAlarm = true,
   }) =>
       _plugin.zonedSchedule(
         id: id,
@@ -145,9 +160,11 @@ class NotificationService {
         body: body,
         scheduledDate: tz.TZDateTime.from(when, tz.local),
         notificationDetails: NotificationDetails(
-          android: _channel,
-          iOS: const DarwinNotificationDetails(
-              interruptionLevel: InterruptionLevel.timeSensitive),
+          android: isAlarm ? _channel : _notifChannel,
+          iOS: DarwinNotificationDetails(
+              interruptionLevel: isAlarm
+                  ? InterruptionLevel.timeSensitive
+                  : InterruptionLevel.active),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         payload: '$id|$snoozeMinutes|$reminderId|$title',

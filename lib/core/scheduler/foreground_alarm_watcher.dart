@@ -55,7 +55,10 @@ class ForegroundAlarmWatcher with WidgetsBindingObserver {
   }
 
   void _fire(({Reminder r, DateTime fireAt}) entry) {
-    if (WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+    // Notification-only reminders never take over the screen; the scheduled
+    // heads-up notification is the whole experience.
+    if (entry.r.isAlarm &&
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
       final id = occurrenceNotificationId(entry.r.id, entry.fireAt);
       _router.go('/alarm',
           extra: '$id|${entry.r.snoozeMinutes}|${entry.r.id}|${entry.r.title}');
