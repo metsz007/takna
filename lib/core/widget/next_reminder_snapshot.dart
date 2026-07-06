@@ -47,8 +47,10 @@ Future<void> pushNextReminder(List<Reminder> reminders, DateTime now) async {
   final snap = nextReminderSnapshot(reminders, now);
   try {
     // Empty state is styled on the native side; the eyebrow label flips from
-    // NEXT ALARM to the app name so a blank widget still reads as Takna.
-    await HomeWidget.saveWidgetData('label', snap == null ? 'TAKNA' : 'NEXT ALARM');
+    // NEXT REMINDER (home hero's wording) to the app name so a blank widget
+    // still reads as Takna.
+    await HomeWidget.saveWidgetData(
+        'label', snap == null ? 'TAKNA' : 'NEXT REMINDER');
     await HomeWidget.saveWidgetData('title', snap?.title ?? 'Nothing scheduled');
     await HomeWidget.saveWidgetData(
         'day', snap?.day ?? 'Tap to add a reminder');
