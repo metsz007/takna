@@ -34,6 +34,10 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
   // reset its creation date. Defaults hold for create mode.
   bool _isEnabled = true;
   DateTime? _createdAt;
+  // Schedule as loaded, so _save can tell whether the user changed it — editing
+  // the time/rrule of a paused (fired) reminder signals intent to re-enable.
+  DateTime? _loadedDate;
+  String? _loadedRrule;
 
   bool get isEdit => widget.reminderId != null;
 
@@ -83,6 +87,8 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
         _isAlarm = r.isAlarm;
         _isEnabled = r.isEnabled;
         _createdAt = r.createdAt;
+        _loadedDate = r.startDateTime;
+        _loadedRrule = r.rruleString;
       }
     } else {
       final prefs = await SharedPreferences.getInstance();
@@ -106,6 +112,15 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
     if (!_needsDate) {
       _date = DateTime(now.year, now.month, now.day, _date.hour, _date.minute);
     }
+    // For dateless repeats only the time-of-day (and rrule) is meaningful — the
+    // date is normalized to today on every save, so don't let that count as a
+    // schedule change. create mode: _loadedDate is null → always "changed".
+    final scheduleChanged = _rrule != _loadedRrule ||
+        (_needsDate
+            ? _date != _loadedDate
+            : _loadedDate == null ||
+                _date.hour != _loadedDate!.hour ||
+                _date.minute != _loadedDate!.minute);
     final r = Reminder(
       id: widget.reminderId ?? const Uuid().v4(),
       title: _title.text.trim(),
@@ -115,7 +130,9 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
       rruleString: _rrule,
       offsetMinutes: _offset,
       snoozeMinutes: _snooze,
-      isEnabled: _isEnabled,
+      // Keep a paused reminder paused, but re-enable if the user changed the
+      // schedule (create mode: _loadedDate is null, so scheduleChanged is true).
+      isEnabled: _isEnabled || scheduleChanged,
       isAlarm: _isAlarm,
       createdAt: _createdAt ?? now,
       updatedAt: now,

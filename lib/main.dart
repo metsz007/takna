@@ -38,12 +38,18 @@ Future<void> main() async {
   // notification reminders open their detail page (routeNotificationTap).
   final launchPayload = await notifications.launchPayload();
   if (launchPayload != null) {
-    await routeNotificationTap(launchPayload, db, app.router.go);
+    try {
+      await routeNotificationTap(launchPayload, db, app.router.go);
+    } catch (_) {
+      // A DB read that throws before runApp must not black-hole the launch —
+      // fall back to the old behavior (always open the alarm screen).
+      app.router.go('/alarm', extra: launchPayload);
+    }
   }
-  // Tap while the app is alive → same routing (action buttons handled elsewhere).
-  notifications.onForegroundResponse = (r) {
-    if (r.actionId == null) routeNotificationTap(r.payload, db, app.router.go);
-  };
+  // Tap or action button while the app is alive: route body taps, apply
+  // Snooze/Dismiss actions (these were previously dropped).
+  notifications.onForegroundResponse = (r) => dispatchNotificationResponse(
+      r.actionId, r.payload, db, notifications, app.router.go);
   // Foreground firing: Android won't full-screen while the app is active,
   // so a Dart timer takes the app to the alarm screen itself.
   ForegroundAlarmWatcher(container, app.router).start();

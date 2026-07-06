@@ -24,7 +24,20 @@ class Scheduler {
   static const _windowTotal = 60; // stay under iOS's 64 pending cap
   static const _perReminder = 10;
 
-  Future<void> reconcile() async {
+  // Serialize reconciles: cancelAll + the schedule loop must not interleave
+  // with another run's, or the OS queue ends up half-rebuilt.
+  // ponytail: per-isolate serialization only — the background isolate has its
+  // own Scheduler, so cross-isolate interleaving on the OS queue is still
+  // possible (rare: an action tap racing an in-app mutation). Upgrade path if
+  // it bites: a shared OS-level lock / single reconcile entry point.
+  Future<void> _chain = Future.value();
+
+  Future<void> reconcile() {
+    _chain = _chain.catchError((_) {}).then((_) => _reconcile());
+    return _chain;
+  }
+
+  Future<void> _reconcile() async {
     var reminders = await _db.getEnabled();
     final now = DateTime.now();
 
@@ -36,7 +49,7 @@ class Scheduler {
     // — the time has passed either way.
     final fired = reminders.where((r) =>
         r.rruleString == null &&
-        r.startDateTime.isBefore(now) &&
+        r.startDateTime.subtract(Duration(minutes: r.offsetMinutes)).isBefore(now) &&
         (r.snoozedUntil == null || r.snoozedUntil!.isBefore(now)));
     for (final r in fired) {
       await _db.setEnabled(r.id, false);

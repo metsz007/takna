@@ -100,4 +100,40 @@ void main() {
     expect(notifications.scheduled, isEmpty);
     expect(notifications.cancelAllCount, 0);
   });
+
+  group('dispatchNotificationResponse', () {
+    late List<({String location, Object? extra})> nav;
+    void go(String location, {Object? extra}) =>
+        nav.add((location: location, extra: extra));
+
+    setUp(() => nav = []);
+
+    test('null actionId (body tap) → routes, no DB action', () async {
+      await db.upsert(_r(id: 'a', start: DateTime.now().add(const Duration(days: 1))));
+
+      await dispatchNotificationResponse(null, '0|10|a|Title', db, notifications, go);
+
+      expect(nav, [(location: '/alarm', extra: '0|10|a|Title')]);
+      expect(notifications.scheduled, isEmpty);
+    });
+
+    test('snooze action persists snoozedUntil and schedules', () async {
+      await db.upsert(_r(id: 'b', start: DateTime.now().add(const Duration(days: 1))));
+
+      await dispatchNotificationResponse('snooze', '0|15|b|Title', db, notifications, go);
+
+      expect((await db.getById('b'))!.snoozedUntil, isNotNull);
+      expect(notifications.scheduled.any((s) => s.reminderId == 'b'), isTrue);
+      expect(nav, isEmpty);
+    });
+
+    test('dismiss action reconciles (fired one-time gets disabled)', () async {
+      await db.upsert(_r(id: 'c', start: DateTime.now().subtract(const Duration(hours: 1))));
+
+      await dispatchNotificationResponse('dismiss', '0|10|c|Title', db, notifications, go);
+
+      expect((await db.getById('c'))!.isEnabled, isFalse);
+      expect(nav, isEmpty);
+    });
+  });
 }

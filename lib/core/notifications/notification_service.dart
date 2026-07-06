@@ -111,6 +111,23 @@ Future<void> handleNotificationAction(
   await Scheduler(db, service).reconcile();
 }
 
+/// Foreground response dispatch: a body tap (no actionId) routes to the alarm
+/// or detail page; a Snooze/Dismiss action button applies its DB effect and
+/// re-arms the window. main wires this to the plugin's foreground callback;
+/// takes plain actionId/payload so it's testable without a NotificationResponse.
+Future<void> dispatchNotificationResponse(
+    String? actionId,
+    String? payload,
+    AppDatabase db,
+    NotificationService service,
+    void Function(String location, {Object? extra}) go) async {
+  if (actionId == null) {
+    await routeNotificationTap(payload, db, go);
+  } else {
+    await handleNotificationAction(actionId, payload, db, service);
+  }
+}
+
 /// Handles Snooze/Dismiss taps while the app is dead. Runs in a background
 /// isolate, so it bootstraps its own plugin/database instances.
 @pragma('vm:entry-point')
