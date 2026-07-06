@@ -49,6 +49,10 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
 
   Future<void> _dismiss() async {
     await _native.invokeMethod('stopAlarm');
+    // Re-arm the rolling window: dismissing a recurring alarm consumes one
+    // pre-scheduled occurrence, so reconcile to refill it (architecture:
+    // re-arm on alarm fire).
+    await ref.read(schedulerProvider).reconcile();
     if (mounted) context.go('/');
   }
 
