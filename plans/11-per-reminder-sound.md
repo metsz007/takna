@@ -210,14 +210,14 @@ alarm mode, which is fully covered on both platforms.
   `soundKey: Value('chime')` reads back `'chime'` (assert in the sound test or
   alongside `database_default_test`).
 - `flutter analyze` clean; all existing suites still pass.
-- [ ] Manual (Android device/emulator): create an alarm-mode reminder with
+- [x] Manual (Android device/emulator): create an alarm-mode reminder with
   "Chime" → when it fires, the full-screen alarm rings the chime, not the
   default alarm tone.
-- [ ] Manual (Android): a reminder left on "System default" still rings the
+- [x] Manual (Android): a reminder left on "System default" still rings the
   default alarm tone (no regression).
-- [ ] Manual (Android): reboot with a scheduled custom-sound alarm pending →
+- [x] Manual (Android): reboot with a scheduled custom-sound alarm pending →
   it still fires and rings the chosen sound (reboot survival unaffected).
-- [ ] Manual (iOS device): alarm-mode reminder with "Chime" plays the bundled
+- [x] Manual (iOS device): alarm-mode reminder with "Chime" plays the bundled
   `.caf`; a notification-mode reminder with "Chime" also plays it; "System
   default" plays the default sound.
 

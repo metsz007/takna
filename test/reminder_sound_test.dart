@@ -38,8 +38,8 @@ void main() {
     });
 
     test('null and unknown key return System default (never throws)', () {
-      expect(soundLabelFor(null), 'System default');
-      expect(soundLabelFor('bogus'), 'System default');
+      expect(soundLabelFor(null), 'Default');
+      expect(soundLabelFor('bogus'), 'Default');
     });
   });
 

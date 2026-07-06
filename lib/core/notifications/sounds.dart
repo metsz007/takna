@@ -25,5 +25,5 @@ String soundLabelFor(String? key) {
   for (final s in soundCatalog) {
     if (s.key == key) return s.label;
   }
-  return 'System default';
+  return 'Default';
 }
