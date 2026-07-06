@@ -55,20 +55,35 @@ const _actions = [
   );
 }
 
-/// Handles Snooze taps while the app is dead. Runs in a background isolate,
-/// so it bootstraps its own plugin/database instances. The snooze is
-/// persisted on the reminder so the UI shows it and it survives reboots.
+/// Applies a notification action to the DB and re-arms the rolling window.
+/// Snooze persists snoozedUntil (survives reboots, shown in the UI) then
+/// reconciles; Dismiss just reconciles — reconcile itself re-arms the window
+/// and auto-disables fired one-time reminders. Other actions are no-ops.
+Future<void> handleNotificationAction(
+    String? actionId, String? payload, AppDatabase db, NotificationService service) async {
+  if (actionId == snoozeActionId) {
+    final p = parsePayload(payload);
+    await db.setSnoozedUntil(
+        p.reminderId, DateTime.now().add(Duration(minutes: p.snoozeMinutes)));
+  } else if (actionId != dismissActionId) {
+    return;
+  }
+  await Scheduler(db, service).reconcile();
+}
+
+/// Handles Snooze/Dismiss taps while the app is dead. Runs in a background
+/// isolate, so it bootstraps its own plugin/database instances.
 @pragma('vm:entry-point')
 void notificationBackgroundHandler(NotificationResponse response) async {
-  if (response.actionId != snoozeActionId) return;
-  final p = parsePayload(response.payload);
+  if (response.actionId != snoozeActionId &&
+      response.actionId != dismissActionId) {
+    return;
+  }
   final service = NotificationService();
   await service.init(handleForeground: false);
   final db = AppDatabase();
   try {
-    await db.setSnoozedUntil(
-        p.reminderId, DateTime.now().add(Duration(minutes: p.snoozeMinutes)));
-    await Scheduler(db, service).reconcile();
+    await handleNotificationAction(response.actionId, response.payload, db, service);
   } finally {
     await db.close();
   }
