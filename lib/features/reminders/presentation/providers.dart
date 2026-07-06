@@ -27,9 +27,9 @@ final reminderByIdProvider = FutureProvider.family<Reminder?, String>(
   return ref.watch(reminderRepositoryProvider).getById(id);
 });
 
-// ponytail: one-shot fetch, not auto-refreshed mid-view — the alarm screen
-// navigates home before detail is reopened, so a plain read is fresh enough.
-final lastFiredProvider = FutureProvider.family<FiredEvent?, String>(
+// autoDispose: re-read on every detail open — a cached null from a visit
+// before the first fire would otherwise hide the line forever.
+final lastFiredProvider = FutureProvider.autoDispose.family<FiredEvent?, String>(
     (ref, id) => ref.watch(databaseProvider).lastFired(id));
 
 final prefsProvider = FutureProvider((ref) => SharedPreferences.getInstance());

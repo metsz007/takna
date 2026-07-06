@@ -30,8 +30,12 @@ List<DateTime> nextOccurrences(Reminder r, DateTime after, int count) {
   final a = after;
   final afterUtc = DateTime.utc(a.year, a.month, a.day, a.hour, a.minute, a.second);
   final skips = decodeSkips(r.skippedDates);
-  return rule
-      .getInstances(start: startUtc, after: afterUtc)
+  // rrule asserts after >= start; a future-start series means every instance
+  // (including start itself) is already after [after], so iterate from start.
+  final instances = afterUtc.isBefore(startUtc)
+      ? rule.getInstances(start: startUtc)
+      : rule.getInstances(start: startUtc, after: afterUtc);
+  return instances
       .map((d) => DateTime(d.year, d.month, d.day, d.hour, d.minute))
       .where((d) => !skips.contains(d.millisecondsSinceEpoch))
       .take(count)

@@ -41,6 +41,18 @@ void main() {
     ]);
   });
 
+  test('recurring with a future start does not crash and starts at start', () {
+    // Regression: rrule's getInstances asserts after >= start; a series
+    // starting after "now" used to throw on every render.
+    final future = DateTime(2026, 7, 10, 9);
+    final occ = nextOccurrences(_r(rrule: 'FREQ=DAILY', start: future), after, 3);
+    expect(occ, [
+      DateTime(2026, 7, 10, 9),
+      DateTime(2026, 7, 11, 9),
+      DateTime(2026, 7, 12, 9),
+    ]);
+  });
+
   test('weekly MO,WE,FR', () {
     final occ = nextOccurrences(
         _r(rrule: 'FREQ=WEEKLY;BYDAY=MO,WE,FR', start: start), after, 3);
