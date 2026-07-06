@@ -38,7 +38,7 @@ class ReminderDetailScreen extends ConsumerWidget {
           data: (r) {
             if (r == null) return const Center(child: Text('Reminder not found'));
             final now = DateTime.now();
-            final next5 = nextOccurrences(r, now, 5);
+            final next5 = upcomingWithSkips(r, now, 5);
             // Occurrence list below stays pure RRULE; the hero uses the
             // snooze-aware effective next fire.
             final next = effectiveNextFire(r, now);
@@ -147,20 +147,9 @@ class ReminderDetailScreen extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                     child: GestureDetector(
-                      onTap: () async {
-                        final repo = ref.read(reminderRepositoryProvider);
-                        final skipped = await repo.skipNext(reminderId);
-                        if (skipped != null && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(
-                                'Skipped ${DateFormat('EEE, MMM d').format(skipped)}'),
-                            action: SnackBarAction(
-                              label: 'Undo',
-                              onPressed: () => repo.unskip(reminderId, skipped),
-                            ),
-                          ));
-                        }
-                      },
+                      // Undo lives inline on the faded occurrence row below.
+                      onTap: () =>
+                          ref.read(reminderRepositoryProvider).skipNext(reminderId),
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
                         decoration: BoxDecoration(
@@ -212,37 +201,57 @@ class ReminderDetailScreen extends ConsumerWidget {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  // Cross-fade when the occurrence set changes (e.g. skip).
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 250),
-                    child: Column(
-                        key: ValueKey(next5.map((d) => d.millisecondsSinceEpoch).join(',')),
-                        children: [
+                  child: Column(children: [
                     for (var i = 0; i < next5.length; i++)
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 4),
                         decoration:
                             BoxDecoration(border: Border(bottom: BorderSide(color: t.line))),
                         child: Row(children: [
-                          Container(
-                            width: 26,
-                            height: 26,
-                            decoration: BoxDecoration(
-                                color: t.accentSoft, borderRadius: BorderRadius.circular(8)),
-                            alignment: Alignment.center,
-                            child:
-                                Text('${i + 1}', style: display(11, FontWeight.w700, t.accentInk)),
-                          ),
-                          const SizedBox(width: 14),
+                          // Skipped rows stay in place, faded, with inline Undo.
                           Expanded(
-                              child: Text(_dayLabel(next5[i]),
-                                  style: body(14, FontWeight.w600, t.ink))),
-                          Text(DateFormat('h:mm a').format(next5[i]),
-                              style: display(13, FontWeight.w600, t.ink2)),
+                            child: AnimatedOpacity(
+                              duration: const Duration(milliseconds: 250),
+                              opacity: next5[i].skipped ? 0.35 : 1,
+                              child: Row(children: [
+                                Container(
+                                  width: 26,
+                                  height: 26,
+                                  decoration: BoxDecoration(
+                                      color: t.accentSoft,
+                                      borderRadius: BorderRadius.circular(8)),
+                                  alignment: Alignment.center,
+                                  child: Text('${i + 1}',
+                                      style: display(11, FontWeight.w700, t.accentInk)),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                    child: Text(_dayLabel(next5[i].at),
+                                        style: body(14, FontWeight.w600, t.ink))),
+                                Text(DateFormat('h:mm a').format(next5[i].at),
+                                    style: display(13, FontWeight.w600, t.ink2)),
+                              ]),
+                            ),
+                          ),
+                          if (next5[i].skipped)
+                            GestureDetector(
+                              onTap: () => ref
+                                  .read(reminderRepositoryProvider)
+                                  .unskip(reminderId, next5[i].at),
+                              child: Container(
+                                margin: const EdgeInsets.only(left: 12),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                    color: t.accentSoft,
+                                    borderRadius: BorderRadius.circular(20)),
+                                child: Text('Undo',
+                                    style: body(11.5, FontWeight.w700, t.accentInk)),
+                              ),
+                            ),
                         ]),
                       ),
-                    ]),
-                  ),
+                  ]),
                 ),
                 const Padding(
                   padding: EdgeInsets.fromLTRB(20, 16, 20, 0),

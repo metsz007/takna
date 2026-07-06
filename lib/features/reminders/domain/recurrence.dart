@@ -19,7 +19,25 @@ String encodeSkips(Set<int> skips) => jsonEncode(skips.toList());
 /// The rrule package computes in UTC, so we feed it wall-clock components
 /// stamped as UTC and strip the flag on the way out. DST-safe for wall-time
 /// semantics ("every day at 9:00").
-List<DateTime> nextOccurrences(Reminder r, DateTime after, int count) {
+List<DateTime> nextOccurrences(Reminder r, DateTime after, int count) =>
+    _rawOccurrences(r, after)
+        .where((d) =>
+            !decodeSkips(r.skippedDates).contains(d.millisecondsSinceEpoch))
+        .take(count)
+        .toList();
+
+/// Like [nextOccurrences] but keeps skipped instants in the list, flagged —
+/// for UIs that show a skip in place (faded + undo) instead of hiding it.
+List<({DateTime at, bool skipped})> upcomingWithSkips(
+    Reminder r, DateTime after, int count) {
+  final skips = decodeSkips(r.skippedDates);
+  return _rawOccurrences(r, after)
+      .take(count)
+      .map((d) => (at: d, skipped: skips.contains(d.millisecondsSinceEpoch)))
+      .toList();
+}
+
+Iterable<DateTime> _rawOccurrences(Reminder r, DateTime after) {
   if (r.rruleString == null) {
     return r.startDateTime.isAfter(after) ? [r.startDateTime] : [];
   }
@@ -29,17 +47,12 @@ List<DateTime> nextOccurrences(Reminder r, DateTime after, int count) {
   final startUtc = DateTime.utc(s.year, s.month, s.day, s.hour, s.minute);
   final a = after;
   final afterUtc = DateTime.utc(a.year, a.month, a.day, a.hour, a.minute, a.second);
-  final skips = decodeSkips(r.skippedDates);
   // rrule asserts after >= start; a future-start series means every instance
   // (including start itself) is already after [after], so iterate from start.
   final instances = afterUtc.isBefore(startUtc)
       ? rule.getInstances(start: startUtc)
       : rule.getInstances(start: startUtc, after: afterUtc);
-  return instances
-      .map((d) => DateTime(d.year, d.month, d.day, d.hour, d.minute))
-      .where((d) => !skips.contains(d.millisecondsSinceEpoch))
-      .take(count)
-      .toList();
+  return instances.map((d) => DateTime(d.year, d.month, d.day, d.hour, d.minute));
 }
 
 /// The next time this reminder will actually fire, and whether that's a

@@ -88,6 +88,19 @@ void main() {
       // Skipping the next occurrence yields exactly the unskipped tail.
       expect(nextOccurrences(r, after, 3), full.sublist(1));
     });
+
+    test('upcomingWithSkips keeps the skipped instant, flagged', () {
+      final full = nextOccurrences(_r(id: 'x', rrule: 'FREQ=DAILY', start: start), after, 3);
+      final r = _r(
+          id: 'x',
+          rrule: 'FREQ=DAILY',
+          start: start,
+          skippedDates: encodeSkips({full[1].millisecondsSinceEpoch}));
+
+      final rows = upcomingWithSkips(r, after, 3);
+      expect(rows.map((o) => o.at), full, reason: 'skips stay in place');
+      expect(rows.map((o) => o.skipped), [false, true, false]);
+    });
   });
 
   group('codec', () {
