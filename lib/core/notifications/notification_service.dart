@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -42,6 +43,30 @@ const _actions = [
   AndroidNotificationAction(snoozeActionId, 'Snooze', cancelNotification: true),
   AndroidNotificationAction(dismissActionId, 'Dismiss', cancelNotification: true),
 ];
+
+/// Resolves the device-reported IANA id [candidate] to a tz-database
+/// location name. Trusts a known id verbatim; if it's null or not in the
+/// database, falls back to the current-offset scan, then UTC. Pure — the
+/// platform-channel call is the caller's job. Assumes tz data is already
+/// initialized (init() does this before calling).
+String resolveTimeZoneName(String? candidate) {
+  if (candidate != null &&
+      tz.timeZoneDatabase.locations.containsKey(candidate)) {
+    return candidate;
+  }
+  // ponytail: offset scan kept as fallback if the plugin throws or reports
+  // an id not in the tz database — a wrong-DST sibling still beats UTC.
+  // Ceiling: same DST-ambiguity as before, but only on the rare fallback
+  // path now, not every launch.
+  try {
+    final offset = DateTime.now().timeZoneOffset;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final name in tz.timeZoneDatabase.locations.keys) {
+      if (tz.getLocation(name).timeZone(now).offset == offset) return name;
+    }
+  } catch (_) {}
+  return 'UTC';
+}
 
 /// Payload format: "notificationId|snoozeMinutes|reminderId|title".
 ({int id, int snoozeMinutes, String reminderId, String title}) parsePayload(
@@ -134,20 +159,11 @@ class NotificationService {
   }
 
   Future<String> _localTimeZoneName() async {
-    // ponytail: DateTime.now().timeZoneName gives abbreviations, not IANA ids;
-    // tz.local defaults to UTC otherwise. Use offset match as pragmatic v1
-    // fallback; swap in flutter_timezone package if this misfires for users.
+    String? id;
     try {
-      final offset = DateTime.now().timeZoneOffset;
-      final now = DateTime.now().millisecondsSinceEpoch;
-      for (final name in tz.timeZoneDatabase.locations.keys) {
-        final loc = tz.getLocation(name);
-        if (loc.timeZone(now).offset == offset) {
-          return name;
-        }
-      }
+      id = (await FlutterTimezone.getLocalTimezone()).identifier;
     } catch (_) {}
-    return 'UTC';
+    return resolveTimeZoneName(id);
   }
 
   Future<void> requestPermissions() async {
