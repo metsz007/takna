@@ -112,7 +112,7 @@ create mode, so those requirements fall out for free.
   - **enabled:** `saved.isEnabled == true` (even if the seed was paused).
 - `flutter analyze` clean; all existing suites (esp. `add_edit_test.dart`)
   still pass — the edit and create paths are behaviorally unchanged.
-- [ ] Manual (device/emulator): open a reminder's detail → tap Duplicate → form
+- [x] Manual (device/emulator): open a reminder's detail → tap Duplicate → form
   opens pre-filled → change the title → Save → home shows both the original and
   the copy, and the original's next-fire is unchanged (the copy is a separate
   row, not an edit of the original).

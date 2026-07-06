@@ -135,12 +135,12 @@ the scheduler never reads.
     `upsert` a row with `tag: 'work'` → reads back `'work'`.
 - `flutter analyze` is clean; all existing suites still pass (including
   `add_edit_test.dart` and `database_default_test.dart`).
-- [ ] Manual (device/emulator): create 3 reminders, tag two of them "work" and
+- [x] Manual (device/emulator): create 3 reminders, tag two of them "work" and
   one "home"; home shows an All/home/work chip row; tapping "work" narrows the
   list (and hero) to the two work reminders; tapping "All" restores everything;
   deleting the only "home" reminder while "home" is selected falls back to All
   with no blank screen.
-- [ ] Manual: fresh install over an existing DB (schema 3 → 4) opens without
+- [x] Manual: fresh install over an existing DB (schema 3 → 4) opens without
   error and all pre-existing reminders show untagged.
 
 ## Out of scope

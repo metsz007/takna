@@ -112,7 +112,7 @@ No repository, scheduler, DB, notification-service, or settings changes.
 - Existing suites still pass — in particular `test/notification_action_test.dart`
   (shade-action snooze/dismiss) and `test/detail_snooze_test.dart` are untouched
   and green, proving the other two snooze surfaces didn't regress.
-- [ ] Manual (device/emulator): let an alarm ring full-screen; tap a preset
+- [x] Manual (device/emulator): let an alarm ring full-screen; tap a preset
   (e.g. 30) → screen closes to home, and the reminder's hero/detail shows
   `SNOOZED` at now + 30 min (not now + the reminder's saved snooze). Tapping the
   big Snooze button instead snoozes by the saved default.

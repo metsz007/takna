@@ -122,11 +122,11 @@ and each covering exactly one platform gap Flutter has no native API for:
     `importAll` with 3 rows results in 3 rows in the DB and exactly one
     reconcile pass.
 - `flutter analyze` clean; all existing suites still pass.
-- [ ] Manual (device/emulator): export with 2+ reminders → share sheet opens
+- [x] Manual (device/emulator): export with 2+ reminders → share sheet opens
   with a `.json` file; delete one reminder; import the file → the deleted
   reminder is back, appears on home, and its notification is rescheduled
   (check via detail screen next-fire).
-- [ ] Manual: import a random non-backup `.json` → snackbar error, no data
+- [x] Manual: import a random non-backup `.json` → snackbar error, no data
   change.
 
 ## Out of scope
