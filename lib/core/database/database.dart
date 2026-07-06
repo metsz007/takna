@@ -61,4 +61,8 @@ class AppDatabase extends _$AppDatabase {
   Future<void> setSnoozedUntil(String id, DateTime? until) =>
       (update(reminders)..where((t) => t.id.equals(id)))
           .write(RemindersCompanion(snoozedUntil: Value(until)));
+
+  Future<void> setEnabled(String id, bool enabled) =>
+      (update(reminders)..where((t) => t.id.equals(id)))
+          .write(RemindersCompanion(isEnabled: Value(enabled)));
 }

@@ -25,8 +25,23 @@ class Scheduler {
   static const _perReminder = 10;
 
   Future<void> reconcile() async {
-    final reminders = await _db.getEnabled();
+    var reminders = await _db.getEnabled();
     final now = DateTime.now();
+
+    // Google Clock pattern: a fired one-time reminder flips its toggle off so
+    // it stops sitting in the list as enabled with "No upcoming". A pending
+    // snooze keeps it alive — that occurrence must still fire, and it gets
+    // disabled on the reconcile after the snooze passes. Deliberate: a one-time
+    // reminder that fired while the phone was off is disabled on next reconcile
+    // — the time has passed either way.
+    final fired = reminders.where((r) =>
+        r.rruleString == null &&
+        r.startDateTime.isBefore(now) &&
+        (r.snoozedUntil == null || r.snoozedUntil!.isBefore(now)));
+    for (final r in fired) {
+      await _db.setEnabled(r.id, false);
+    }
+    if (fired.isNotEmpty) reminders = await _db.getEnabled();
 
     final occurrences = <({Reminder r, DateTime fireAt})>[];
     for (final r in reminders) {
