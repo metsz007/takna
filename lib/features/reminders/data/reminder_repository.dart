@@ -36,6 +36,17 @@ class ReminderRepository {
     await _scheduler.reconcile();
   }
 
+  /// Skips one specific RRULE occurrence.
+  Future<void> skip(String id, DateTime occurrence) async {
+    final r = await _db.getById(id);
+    if (r == null || r.rruleString == null) return;
+    final skips = decodeSkips(r.skippedDates)
+      ..add(occurrence.millisecondsSinceEpoch);
+    await _db.upsert(r.copyWith(
+        skippedDates: Value(encodeSkips(skips)), updatedAt: DateTime.now()));
+    await _scheduler.reconcile();
+  }
+
   /// Skips the next RRULE occurrence (not a pending snooze). Returns the
   /// skipped occurrence, or null if nothing to skip / not recurring.
   Future<DateTime?> skipNext(String id) async {
@@ -43,11 +54,7 @@ class ReminderRepository {
     if (r == null || r.rruleString == null) return null;
     final next = nextOccurrences(r, DateTime.now(), 1);
     if (next.isEmpty) return null;
-    final skips = decodeSkips(r.skippedDates)
-      ..add(next.first.millisecondsSinceEpoch);
-    await _db.upsert(r.copyWith(
-        skippedDates: Value(encodeSkips(skips)), updatedAt: DateTime.now()));
-    await _scheduler.reconcile();
+    await skip(id, next.first);
     return next.first;
   }
 

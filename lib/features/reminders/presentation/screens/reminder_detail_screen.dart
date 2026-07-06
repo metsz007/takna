@@ -143,29 +143,6 @@ class ReminderDetailScreen extends ConsumerWidget {
                     ]),
                   ),
                 ),
-                if (r.rruleString != null && nextFire != null)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                    child: GestureDetector(
-                      // Undo lives inline on the faded occurrence row below.
-                      onTap: () =>
-                          ref.read(reminderRepositoryProvider).skipNext(reminderId),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: t.surface,
-                          border: Border.all(color: t.line),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(children: [
-                          Icon(Icons.event_busy, size: 16, color: t.ink2),
-                          const SizedBox(width: 9),
-                          Text('Skip next occurrence',
-                              style: body(13, FontWeight.w700, t.ink)),
-                        ]),
-                      ),
-                    ),
-                  ),
                 ...() {
                   final last = ref.watch(lastFiredProvider(reminderId)).asData?.value;
                   if (last == null) return const <Widget>[];
@@ -233,20 +210,27 @@ class ReminderDetailScreen extends ConsumerWidget {
                               ]),
                             ),
                           ),
-                          if (next5[i].skipped)
+                          if (r.rruleString != null)
                             GestureDetector(
-                              onTap: () => ref
-                                  .read(reminderRepositoryProvider)
-                                  .unskip(reminderId, next5[i].at),
+                              onTap: () {
+                                final repo = ref.read(reminderRepositoryProvider);
+                                next5[i].skipped
+                                    ? repo.unskip(reminderId, next5[i].at)
+                                    : repo.skip(reminderId, next5[i].at);
+                              },
                               child: Container(
                                 margin: const EdgeInsets.only(left: 12),
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                    color: t.accentSoft,
+                                    color: next5[i].skipped ? t.accentSoft : t.surface,
+                                    border: next5[i].skipped
+                                        ? null
+                                        : Border.all(color: t.line),
                                     borderRadius: BorderRadius.circular(20)),
-                                child: Text('Undo',
-                                    style: body(11.5, FontWeight.w700, t.accentInk)),
+                                child: Text(next5[i].skipped ? 'Undo' : 'Skip',
+                                    style: body(11.5, FontWeight.w700,
+                                        next5[i].skipped ? t.accentInk : t.ink2)),
                               ),
                             ),
                         ]),
