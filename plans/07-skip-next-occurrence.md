@@ -198,7 +198,7 @@ Not touched: `scheduler.dart` (it already calls `nextOccurrences`),
 - `flutter analyze` clean; all existing suites (`recurrence`, `scheduler`,
   `detail_snooze`, …) still pass. The `database_default_test` still holds after
   the schema bump (defaults unchanged; `skippedDates` defaults to null).
-- [ ] Manual (device/emulator): create a daily reminder; open detail; tap
+- [x] Manual (device/emulator): create a daily reminder; open detail; tap
   "Skip next" → snackbar shows, the first "next 5" entry advances by one day,
   the hero updates, and the skipped fireAt no longer rings (verify via the
   next-fire label / no notification at that time). Tap Undo within the snackbar
