@@ -139,6 +139,19 @@ class ReminderDetailScreen extends ConsumerWidget {
                     ]),
                   ),
                 ),
+                ...() {
+                  final last = ref.watch(lastFiredProvider(reminderId)).asData?.value;
+                  if (last == null) return const <Widget>[];
+                  return [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 12, 24, 0),
+                      child: Text(
+                          'Last fired: ${_dayLabel(last.firedAt)} '
+                          '${DateFormat('h:mm a').format(last.firedAt)} · ${last.kind}',
+                          style: body(13, FontWeight.w500, t.ink3)),
+                    ),
+                  ];
+                }(),
                 if (r.notes != null)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),

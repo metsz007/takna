@@ -23,7 +23,19 @@ class Reminders extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-@DriftDatabase(tables: [Reminders])
+/// Append-only audit log of alarm fires and terminal actions. Deliberately
+/// outside the reconcile write-path: a fired row is a historical fact nothing
+/// recomputes or schedules from. The title is a snapshot at fire time (not
+/// derived data — the reminder may later be renamed or deleted).
+class FiredEvents extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get reminderId => text()();
+  TextColumn get title => text()();
+  TextColumn get kind => text()(); // 'fired' | 'dismissed' | 'snoozed'
+  DateTimeColumn get firedAt => dateTime()();
+}
+
+@DriftDatabase(tables: [Reminders, FiredEvents])
 class AppDatabase extends _$AppDatabase {
   // shareAcrossIsolates: the notification background isolate (snooze from
   // the shade) writes to the same DB while the app may be running.
@@ -34,13 +46,14 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (m, from, to) async {
           if (from < 2) await m.addColumn(reminders, reminders.snoozedUntil);
           if (from < 3) await m.addColumn(reminders, reminders.isAlarm);
+          if (from < 4) await m.createTable(firedEvents);
         },
       );
 
@@ -66,4 +79,27 @@ class AppDatabase extends _$AppDatabase {
   Future<void> setEnabled(String id, bool enabled) =>
       (update(reminders)..where((t) => t.id.equals(id)))
           .write(RemindersCompanion(isEnabled: Value(enabled)));
+
+  /// Records one alarm-history fact. [at] defaults to now; the param exists so
+  /// the prune test can log an old row. Not reconcile-routed on purpose —
+  /// append-only audit log.
+  Future<void> logFired(String reminderId, String title, String kind,
+      {DateTime? at}) async {
+    await into(firedEvents).insert(FiredEventsCompanion.insert(
+        reminderId: reminderId,
+        title: title,
+        kind: kind,
+        firedAt: at ?? DateTime.now()));
+    // ponytail: prune-on-insert, 90-day cap — no background job. Ceiling: if a
+    // user fires hundreds/day, switch to keep-last-N.
+    final cutoff = DateTime.now().subtract(const Duration(days: 90));
+    await (delete(firedEvents)..where((t) => t.firedAt.isSmallerThanValue(cutoff)))
+        .go();
+  }
+
+  Future<FiredEvent?> lastFired(String reminderId) => (select(firedEvents)
+        ..where((t) => t.reminderId.equals(reminderId))
+        ..orderBy([(t) => OrderingTerm.desc(t.firedAt)])
+        ..limit(1))
+      .getSingleOrNull();
 }

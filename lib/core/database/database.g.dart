@@ -778,15 +778,360 @@ class RemindersCompanion extends UpdateCompanion<Reminder> {
   }
 }
 
+class $FiredEventsTable extends FiredEvents
+    with TableInfo<$FiredEventsTable, FiredEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FiredEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _reminderIdMeta = const VerificationMeta(
+    'reminderId',
+  );
+  @override
+  late final GeneratedColumn<String> reminderId = GeneratedColumn<String>(
+    'reminder_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _firedAtMeta = const VerificationMeta(
+    'firedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> firedAt = GeneratedColumn<DateTime>(
+    'fired_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, reminderId, title, kind, firedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'fired_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FiredEvent> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('reminder_id')) {
+      context.handle(
+        _reminderIdMeta,
+        reminderId.isAcceptableOrUnknown(data['reminder_id']!, _reminderIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reminderIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('fired_at')) {
+      context.handle(
+        _firedAtMeta,
+        firedAt.isAcceptableOrUnknown(data['fired_at']!, _firedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_firedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FiredEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FiredEvent(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      reminderId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reminder_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      firedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}fired_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FiredEventsTable createAlias(String alias) {
+    return $FiredEventsTable(attachedDatabase, alias);
+  }
+}
+
+class FiredEvent extends DataClass implements Insertable<FiredEvent> {
+  final int id;
+  final String reminderId;
+  final String title;
+  final String kind;
+  final DateTime firedAt;
+  const FiredEvent({
+    required this.id,
+    required this.reminderId,
+    required this.title,
+    required this.kind,
+    required this.firedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['reminder_id'] = Variable<String>(reminderId);
+    map['title'] = Variable<String>(title);
+    map['kind'] = Variable<String>(kind);
+    map['fired_at'] = Variable<DateTime>(firedAt);
+    return map;
+  }
+
+  FiredEventsCompanion toCompanion(bool nullToAbsent) {
+    return FiredEventsCompanion(
+      id: Value(id),
+      reminderId: Value(reminderId),
+      title: Value(title),
+      kind: Value(kind),
+      firedAt: Value(firedAt),
+    );
+  }
+
+  factory FiredEvent.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FiredEvent(
+      id: serializer.fromJson<int>(json['id']),
+      reminderId: serializer.fromJson<String>(json['reminderId']),
+      title: serializer.fromJson<String>(json['title']),
+      kind: serializer.fromJson<String>(json['kind']),
+      firedAt: serializer.fromJson<DateTime>(json['firedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'reminderId': serializer.toJson<String>(reminderId),
+      'title': serializer.toJson<String>(title),
+      'kind': serializer.toJson<String>(kind),
+      'firedAt': serializer.toJson<DateTime>(firedAt),
+    };
+  }
+
+  FiredEvent copyWith({
+    int? id,
+    String? reminderId,
+    String? title,
+    String? kind,
+    DateTime? firedAt,
+  }) => FiredEvent(
+    id: id ?? this.id,
+    reminderId: reminderId ?? this.reminderId,
+    title: title ?? this.title,
+    kind: kind ?? this.kind,
+    firedAt: firedAt ?? this.firedAt,
+  );
+  FiredEvent copyWithCompanion(FiredEventsCompanion data) {
+    return FiredEvent(
+      id: data.id.present ? data.id.value : this.id,
+      reminderId: data.reminderId.present
+          ? data.reminderId.value
+          : this.reminderId,
+      title: data.title.present ? data.title.value : this.title,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      firedAt: data.firedAt.present ? data.firedAt.value : this.firedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FiredEvent(')
+          ..write('id: $id, ')
+          ..write('reminderId: $reminderId, ')
+          ..write('title: $title, ')
+          ..write('kind: $kind, ')
+          ..write('firedAt: $firedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, reminderId, title, kind, firedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FiredEvent &&
+          other.id == this.id &&
+          other.reminderId == this.reminderId &&
+          other.title == this.title &&
+          other.kind == this.kind &&
+          other.firedAt == this.firedAt);
+}
+
+class FiredEventsCompanion extends UpdateCompanion<FiredEvent> {
+  final Value<int> id;
+  final Value<String> reminderId;
+  final Value<String> title;
+  final Value<String> kind;
+  final Value<DateTime> firedAt;
+  const FiredEventsCompanion({
+    this.id = const Value.absent(),
+    this.reminderId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.firedAt = const Value.absent(),
+  });
+  FiredEventsCompanion.insert({
+    this.id = const Value.absent(),
+    required String reminderId,
+    required String title,
+    required String kind,
+    required DateTime firedAt,
+  }) : reminderId = Value(reminderId),
+       title = Value(title),
+       kind = Value(kind),
+       firedAt = Value(firedAt);
+  static Insertable<FiredEvent> custom({
+    Expression<int>? id,
+    Expression<String>? reminderId,
+    Expression<String>? title,
+    Expression<String>? kind,
+    Expression<DateTime>? firedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (reminderId != null) 'reminder_id': reminderId,
+      if (title != null) 'title': title,
+      if (kind != null) 'kind': kind,
+      if (firedAt != null) 'fired_at': firedAt,
+    });
+  }
+
+  FiredEventsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? reminderId,
+    Value<String>? title,
+    Value<String>? kind,
+    Value<DateTime>? firedAt,
+  }) {
+    return FiredEventsCompanion(
+      id: id ?? this.id,
+      reminderId: reminderId ?? this.reminderId,
+      title: title ?? this.title,
+      kind: kind ?? this.kind,
+      firedAt: firedAt ?? this.firedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (reminderId.present) {
+      map['reminder_id'] = Variable<String>(reminderId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (firedAt.present) {
+      map['fired_at'] = Variable<DateTime>(firedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FiredEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('reminderId: $reminderId, ')
+          ..write('title: $title, ')
+          ..write('kind: $kind, ')
+          ..write('firedAt: $firedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $RemindersTable reminders = $RemindersTable(this);
+  late final $FiredEventsTable firedEvents = $FiredEventsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [reminders];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [reminders, firedEvents];
 }
 
 typedef $$RemindersTableCreateCompanionBuilder =
@@ -1145,10 +1490,208 @@ typedef $$RemindersTableProcessedTableManager =
       Reminder,
       PrefetchHooks Function()
     >;
+typedef $$FiredEventsTableCreateCompanionBuilder =
+    FiredEventsCompanion Function({
+      Value<int> id,
+      required String reminderId,
+      required String title,
+      required String kind,
+      required DateTime firedAt,
+    });
+typedef $$FiredEventsTableUpdateCompanionBuilder =
+    FiredEventsCompanion Function({
+      Value<int> id,
+      Value<String> reminderId,
+      Value<String> title,
+      Value<String> kind,
+      Value<DateTime> firedAt,
+    });
+
+class $$FiredEventsTableFilterComposer
+    extends Composer<_$AppDatabase, $FiredEventsTable> {
+  $$FiredEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reminderId => $composableBuilder(
+    column: $table.reminderId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get firedAt => $composableBuilder(
+    column: $table.firedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FiredEventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FiredEventsTable> {
+  $$FiredEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reminderId => $composableBuilder(
+    column: $table.reminderId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get firedAt => $composableBuilder(
+    column: $table.firedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FiredEventsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FiredEventsTable> {
+  $$FiredEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get reminderId => $composableBuilder(
+    column: $table.reminderId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get firedAt =>
+      $composableBuilder(column: $table.firedAt, builder: (column) => column);
+}
+
+class $$FiredEventsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FiredEventsTable,
+          FiredEvent,
+          $$FiredEventsTableFilterComposer,
+          $$FiredEventsTableOrderingComposer,
+          $$FiredEventsTableAnnotationComposer,
+          $$FiredEventsTableCreateCompanionBuilder,
+          $$FiredEventsTableUpdateCompanionBuilder,
+          (
+            FiredEvent,
+            BaseReferences<_$AppDatabase, $FiredEventsTable, FiredEvent>,
+          ),
+          FiredEvent,
+          PrefetchHooks Function()
+        > {
+  $$FiredEventsTableTableManager(_$AppDatabase db, $FiredEventsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FiredEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FiredEventsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FiredEventsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> reminderId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<DateTime> firedAt = const Value.absent(),
+              }) => FiredEventsCompanion(
+                id: id,
+                reminderId: reminderId,
+                title: title,
+                kind: kind,
+                firedAt: firedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String reminderId,
+                required String title,
+                required String kind,
+                required DateTime firedAt,
+              }) => FiredEventsCompanion.insert(
+                id: id,
+                reminderId: reminderId,
+                title: title,
+                kind: kind,
+                firedAt: firedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FiredEventsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FiredEventsTable,
+      FiredEvent,
+      $$FiredEventsTableFilterComposer,
+      $$FiredEventsTableOrderingComposer,
+      $$FiredEventsTableAnnotationComposer,
+      $$FiredEventsTableCreateCompanionBuilder,
+      $$FiredEventsTableUpdateCompanionBuilder,
+      (
+        FiredEvent,
+        BaseReferences<_$AppDatabase, $FiredEventsTable, FiredEvent>,
+      ),
+      FiredEvent,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
   $$RemindersTableTableManager get reminders =>
       $$RemindersTableTableManager(_db, _db.reminders);
+  $$FiredEventsTableTableManager get firedEvents =>
+      $$FiredEventsTableTableManager(_db, _db.firedEvents);
 }

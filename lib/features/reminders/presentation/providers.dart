@@ -27,6 +27,11 @@ final reminderByIdProvider = FutureProvider.family<Reminder?, String>(
   return ref.watch(reminderRepositoryProvider).getById(id);
 });
 
+// ponytail: one-shot fetch, not auto-refreshed mid-view — the alarm screen
+// navigates home before detail is reopened, so a plain read is fresh enough.
+final lastFiredProvider = FutureProvider.family<FiredEvent?, String>(
+    (ref, id) => ref.watch(databaseProvider).lastFired(id));
+
 final prefsProvider = FutureProvider((ref) => SharedPreferences.getInstance());
 
 /// The two *hard* permissions an alarm needs to actually ring. Battery

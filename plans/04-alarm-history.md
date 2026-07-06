@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 verified-by:
   - test/fired_events_test.dart
 ---

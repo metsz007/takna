@@ -101,11 +101,14 @@ Future<void> routeNotificationTap(String? payload, AppDatabase db,
 /// and auto-disables fired one-time reminders. Other actions are no-ops.
 Future<void> handleNotificationAction(
     String? actionId, String? payload, AppDatabase db, NotificationService service) async {
+  final p = parsePayload(payload);
   if (actionId == snoozeActionId) {
-    final p = parsePayload(payload);
     await db.setSnoozedUntil(
         p.reminderId, DateTime.now().add(Duration(minutes: p.snoozeMinutes)));
-  } else if (actionId != dismissActionId) {
+    await db.logFired(p.reminderId, p.title, 'snoozed');
+  } else if (actionId == dismissActionId) {
+    await db.logFired(p.reminderId, p.title, 'dismissed');
+  } else {
     return;
   }
   await Scheduler(db, service).reconcile();

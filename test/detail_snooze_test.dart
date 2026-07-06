@@ -1,3 +1,4 @@
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,6 +45,11 @@ Reminder _seed({DateTime? snoozedUntil, required DateTime start}) {
 }
 
 Future<void> _pump(WidgetTester tester, Reminder seed) async {
+  // The "Last fired" line watches lastFiredProvider → databaseProvider; give
+  // it an in-memory DB so it doesn't open the real file-backed one (leaks
+  // timers in tests). No fired rows → the line renders nothing.
+  final db = AppDatabase.forTesting(NativeDatabase.memory());
+  addTearDown(db.close);
   final router = GoRouter(
     initialLocation: '/detail/rid',
     routes: [
@@ -57,6 +63,7 @@ Future<void> _pump(WidgetTester tester, Reminder seed) async {
   await tester.pumpWidget(ProviderScope(
     overrides: [
       reminderRepositoryProvider.overrideWithValue(_FakeRepo(seed)),
+      databaseProvider.overrideWithValue(db),
     ],
     child: MaterialApp.router(
       theme: themeFor(Brightness.light),

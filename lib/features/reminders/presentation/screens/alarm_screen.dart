@@ -36,6 +36,8 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
     // stops as soon as the shade is opened) and loop the alarm sound
     // ourselves until Snooze/Dismiss is pressed.
     final p = parsePayload(widget.payload);
+    // Honest "it rang and I saw it" marker — the ring UI is actually on screen.
+    ref.read(databaseProvider).logFired(p.reminderId, p.title, 'fired');
     ref.read(notificationServiceProvider).cancel(p.id);
     // The OS notification may post a beat after we open (foreground-watcher
     // race) — cancel again once it has had time to appear.
