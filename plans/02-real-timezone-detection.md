@@ -1,5 +1,5 @@
 ---
-status: planned
+status: in-progress
 verified-by:
   - test/timezone_test.dart
 ---
@@ -13,10 +13,12 @@ by an hour after a DST transition.
 
 ## Prereq
 
-None (independent of plan 01). **Needs user approval before building** — this
-adds a new runtime dependency (`flutter_timezone`). Re-audit finding 4 in
-`docs/audits/2026-07-06.md` promoted this and flagged it exactly for that
-reason.
+None (independent of plan 01). Adds a new runtime dependency
+(`flutter_timezone`); the approval gate challenged this on 2026-07-07 and
+cleared it to proceed autonomously (reversible one-line dep, the package the
+code's own comment named, already justified by re-audit finding 4 in
+`docs/audits/2026-07-06.md`). Mitigation for the one machine-checkable risk:
+verification includes a debug Android build to catch plugin Gradle breakage.
 
 ## Why (the bug)
 
