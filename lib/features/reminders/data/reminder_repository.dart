@@ -32,4 +32,17 @@ class ReminderRepository {
     await _db.upsert(r.copyWith(isEnabled: enabled, updatedAt: DateTime.now()));
     await _scheduler.reconcile();
   }
+
+  /// All reminders, one-shot (for export).
+  Future<List<Reminder>> getAll() => _db.watchAll().first;
+
+  /// Restores a backup: upsert every row (merge by id), then a single
+  /// reconcile — the DB is the write path and reconcile is idempotent, so once
+  /// at the end is correct and cheap.
+  Future<void> importAll(List<Reminder> rows) async {
+    for (final r in rows) {
+      await _db.upsert(r);
+    }
+    await _scheduler.reconcile();
+  }
 }

@@ -1,9 +1,15 @@
+import 'dart:io';
+
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../core/database/backup.dart';
 import '../../../core/theme/theme.dart';
 import '../../../core/theme/widgets.dart';
 import '../../reminders/presentation/providers.dart';
@@ -210,6 +216,18 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
                       ]),
                     ),
                   ),
+                  const TkSectionLabel('Data'),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: TkCard(
+                      padding: EdgeInsets.zero,
+                      child: Column(children: [
+                        _dataRow(Icons.ios_share_outlined, 'Export backup', _export,
+                            divider: true),
+                        _dataRow(Icons.file_download_outlined, 'Import backup', _import),
+                      ]),
+                    ),
+                  ),
                 ],
               ),
       ),
@@ -250,5 +268,52 @@ class _SettingsState extends ConsumerState<SettingsScreen> with WidgetsBindingOb
               ),
       ]),
     );
+  }
+
+  // Same look as the "Alarm sound" row: icon + label + chevron.
+  Widget _dataRow(IconData icon, String label, VoidCallback onTap, {bool divider = false}) {
+    final t = context.tk;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 15, 16, 15),
+        decoration: divider
+            ? BoxDecoration(border: Border(bottom: BorderSide(color: t.line)))
+            : null,
+        child: Row(children: [
+          Icon(icon, size: 20, color: t.ic1),
+          const SizedBox(width: 12),
+          Expanded(child: Text(label, style: body(14, FontWeight.w600, t.ink))),
+          Icon(Icons.chevron_right, size: 18, color: t.ink3),
+        ]),
+      ),
+    );
+  }
+
+  Future<void> _export() async {
+    final repo = ref.read(reminderRepositoryProvider);
+    final rows = await repo.getAll();
+    final stamp = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final file = File('${Directory.systemTemp.path}/takna-backup-$stamp.json');
+    await file.writeAsString(encodeBackup(rows));
+    await SharePlus.instance.share(ShareParams(files: [XFile(file.path)]));
+  }
+
+  Future<void> _import() async {
+    final messenger = ScaffoldMessenger.of(context);
+    const group = XTypeGroup(
+        label: 'JSON', extensions: ['json'], mimeTypes: ['application/json']);
+    final picked = await openFile(acceptedTypeGroups: [group]);
+    if (picked == null) return; // user cancelled — silent no-op
+    try {
+      final rows = decodeBackup(await picked.readAsString());
+      await ref.read(reminderRepositoryProvider).importAll(rows);
+      messenger.showSnackBar(
+          SnackBar(content: Text('Imported ${rows.length} reminders')));
+    } catch (_) {
+      messenger.showSnackBar(
+          const SnackBar(content: Text('Import failed — not a Takna backup')));
+    }
   }
 }
