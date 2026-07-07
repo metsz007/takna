@@ -32,6 +32,7 @@ Reminder _r(String id, DateTime start) => Reminder(
       rruleString: null,
       offsetMinutes: 0,
       snoozeMinutes: 10,
+      nagMinutes: 0,
       isEnabled: true,
       isAlarm: true,
       snoozedUntil: null,

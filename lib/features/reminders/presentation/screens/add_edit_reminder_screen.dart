@@ -38,6 +38,8 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
   String? _challenge;
   // null = System default; a catalog key (see sounds.dart) names a bundled tone.
   String? _soundKey;
+  // 0 = off; N = re-ring every N minutes after fire time until dismissed.
+  int _nag = 0;
   bool _loaded = false;
   // Preserved across an edit so saving doesn't re-enable a paused reminder or
   // reset its creation date. Defaults hold for create mode.
@@ -113,6 +115,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
     _isAlarm = r.isAlarm;
     _challenge = r.challenge;
     _soundKey = r.soundKey;
+    _nag = r.nagMinutes;
     if (!asCopy) {
       _isEnabled = r.isEnabled;
       _createdAt = r.createdAt;
@@ -159,6 +162,7 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
       isAlarm: _isAlarm,
       challenge: _challenge,
       soundKey: _soundKey,
+      nagMinutes: _nag,
       // ponytail: free text, no length cap and no autocomplete against existing
       // tags — trim-to-null is the whole input. Add suggestions only if typos
       // become a real complaint.
@@ -366,6 +370,24 @@ class _AddEditState extends ConsumerState<AddEditReminderScreen> {
                           if (custom != null) setState(() => _offset = custom);
                         },
                       ),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 11),
+                // nag: after firing, re-ring every N minutes until dismissed
+                TkCard(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      Icon(Icons.notification_important_outlined, size: 20, color: t.ic1),
+                      const SizedBox(width: 13),
+                      Text('Nag until dismissed', style: body(14, FontWeight.w600, t.ink)),
+                    ]),
+                    const SizedBox(height: 12),
+                    TkSegmented<int>(
+                      options: const [0, 5, 15, 30],
+                      value: _nag,
+                      labelOf: (v) => v == 0 ? 'Off' : '$v min',
+                      onChanged: (v) => setState(() => _nag = v),
                     ),
                   ]),
                 ),

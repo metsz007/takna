@@ -1,3 +1,4 @@
+import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import 'package:takna/core/database/database.dart';
 import 'package:takna/core/notifications/notification_service.dart';
 import 'package:takna/core/scheduler/scheduler.dart';
 import 'package:takna/core/theme/theme.dart';
+import 'package:takna/features/reminders/data/reminder_repository.dart';
 import 'package:takna/features/reminders/presentation/providers.dart';
 import 'package:takna/features/reminders/presentation/screens/alarm_screen.dart';
 
@@ -26,13 +28,33 @@ class _FakeScheduler extends Scheduler {
 }
 
 void main() {
-  testWidgets('dismiss re-arms the rolling window via reconcile', (tester) async {
+  testWidgets('dismiss persists dismissedUntil and re-arms via reconcile',
+      (tester) async {
     // AlarmScreen drives the native alarm sound over MethodChannel.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
             const MethodChannel('takna/settings'), (_) async => null);
 
-    final scheduler = _FakeScheduler(AppDatabase(), _FakeNotificationService());
+    final db = AppDatabase.forTesting(NativeDatabase.memory());
+    addTearDown(db.close);
+    final now = DateTime.now();
+    await db.upsert(Reminder(
+      id: 'rid',
+      title: 'Test',
+      startDateTime: now.subtract(const Duration(minutes: 2)),
+      timeZone: 'UTC',
+      offsetMinutes: 0,
+      snoozeMinutes: 5,
+      nagMinutes: 5,
+      isEnabled: true,
+      isAlarm: true,
+      createdAt: now,
+      updatedAt: now,
+    ));
+    // Real repository over the in-memory DB: dismiss must write the flag AND
+    // reconcile — the pair that stops a nagging reminder's remaining re-rings.
+    final scheduler = _FakeScheduler(db, _FakeNotificationService());
+    final repo = ReminderRepository(db, scheduler);
 
     final router = GoRouter(
       initialLocation: '/alarm',
@@ -47,9 +69,11 @@ void main() {
 
     await tester.pumpWidget(ProviderScope(
       overrides: [
+        databaseProvider.overrideWithValue(db),
         notificationServiceProvider
             .overrideWithValue(_FakeNotificationService()),
         schedulerProvider.overrideWithValue(scheduler),
+        reminderRepositoryProvider.overrideWithValue(repo),
       ],
       child: MaterialApp.router(
         theme: themeFor(Brightness.light),
@@ -65,6 +89,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(scheduler.reconciles, 1);
+    expect((await db.getById('rid'))!.dismissedUntil, isNotNull);
 
     addTearDown(() =>
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

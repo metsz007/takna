@@ -12,6 +12,7 @@ Reminder _r({required String id, String? tag}) => Reminder(
       rruleString: null,
       offsetMinutes: 0,
       snoozeMinutes: 5,
+      nagMinutes: 0,
       isEnabled: true,
       isAlarm: true,
       snoozedUntil: null,

@@ -29,6 +29,12 @@ class Reminders extends Table {
   // null = System default (unchanged channel/native behavior); a non-null key
   // names one lib/core/notifications/sounds.dart catalog entry. Never derived.
   TextColumn get soundKey => text().nullable()();
+  // 0 = off; N = after firing, re-ring every N minutes until dismissed. The
+  // nag fire times are never stored — recomputed each reconcile.
+  IntColumn get nagMinutes => integer().withDefault(const Constant(0))();
+  // Record of the user's Dismiss tap (like snoozedUntil): occurrences anchored
+  // at or before this emit no fires. Self-expiring — never needs clearing.
+  DateTimeColumn get dismissedUntil => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 
@@ -74,7 +80,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -87,6 +93,10 @@ class AppDatabase extends _$AppDatabase {
           if (from < 7) await m.addColumn(reminders, reminders.challenge);
           if (from < 8) await m.createTable(appState);
           if (from < 9) await m.addColumn(reminders, reminders.soundKey);
+          if (from < 10) {
+            await m.addColumn(reminders, reminders.nagMinutes);
+            await m.addColumn(reminders, reminders.dismissedUntil);
+          }
         },
       );
 
@@ -108,6 +118,10 @@ class AppDatabase extends _$AppDatabase {
   Future<void> setSnoozedUntil(String id, DateTime? until) =>
       (update(reminders)..where((t) => t.id.equals(id)))
           .write(RemindersCompanion(snoozedUntil: Value(until)));
+
+  Future<void> setDismissedUntil(String id, DateTime? until) =>
+      (update(reminders)..where((t) => t.id.equals(id)))
+          .write(RemindersCompanion(dismissedUntil: Value(until)));
 
   Future<void> setEnabled(String id, bool enabled) =>
       (update(reminders)..where((t) => t.id.equals(id)))

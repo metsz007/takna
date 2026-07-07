@@ -98,8 +98,11 @@ Future<void> routeNotificationTap(String? payload, AppDatabase db,
 
 /// Applies a notification action to the DB and re-arms the rolling window.
 /// Snooze persists snoozedUntil (survives reboots, shown in the UI) then
-/// reconciles; Dismiss just reconciles — reconcile itself re-arms the window
-/// and auto-disables fired one-time reminders. Other actions are no-ops.
+/// reconciles; Dismiss persists dismissedUntil — the record that stops a
+/// nagging reminder's remaining re-rings — then reconciles, which also
+/// auto-disables fired one-time reminders. Other actions are no-ops. This is
+/// the exact code the dead-app background isolate runs, so a shade Dismiss
+/// survives to the next reconcile with no extra wiring.
 Future<void> handleNotificationAction(
     String? actionId, String? payload, AppDatabase db, NotificationService service) async {
   final p = parsePayload(payload);
@@ -108,6 +111,7 @@ Future<void> handleNotificationAction(
         p.reminderId, DateTime.now().add(Duration(minutes: p.snoozeMinutes)));
     await db.logFired(p.reminderId, p.title, 'snoozed');
   } else if (actionId == dismissActionId) {
+    await db.setDismissedUntil(p.reminderId, DateTime.now());
     await db.logFired(p.reminderId, p.title, 'dismissed');
   } else {
     return;

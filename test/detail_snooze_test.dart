@@ -36,6 +36,7 @@ Reminder _seed({DateTime? snoozedUntil, required DateTime start}) {
     timeZone: 'UTC',
     offsetMinutes: 0,
     snoozeMinutes: 5,
+    nagMinutes: 0,
     isEnabled: true,
     isAlarm: true,
     createdAt: created,

@@ -70,13 +70,14 @@ class _AlarmScreenState extends ConsumerState<AlarmScreen> {
   }
 
   Future<void> _dismiss() async {
+    final p = parsePayload(widget.payload);
     await _native.invokeMethod('stopAlarm');
-    // Re-arm the rolling window: dismissing a recurring alarm consumes one
-    // pre-scheduled occurrence, so reconcile to refill it (architecture:
-    // re-arm on alarm fire). A reconcile failure must never strand the user on
-    // the ringing screen — leave regardless.
+    // Persist the dismissal (stops a nagging reminder's remaining re-rings)
+    // and re-arm the rolling window (architecture: re-arm on alarm fire). A
+    // failure must never strand the user on the ringing screen — leave
+    // regardless.
     try {
-      await ref.read(schedulerProvider).reconcile();
+      await ref.read(reminderRepositoryProvider).dismiss(p.reminderId);
     } finally {
       if (mounted) context.go('/');
     }

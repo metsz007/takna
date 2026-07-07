@@ -29,6 +29,14 @@ class ReminderRepository {
     await _scheduler.reconcile();
   }
 
+  /// Records a Dismiss (stops a nagging reminder's remaining re-rings) and
+  /// re-arms the window. Harmless on non-nag reminders: dismissedUntil only
+  /// suppresses occurrences at/before now, which are already past.
+  Future<void> dismiss(String id) async {
+    await _db.setDismissedUntil(id, DateTime.now());
+    await _scheduler.reconcile();
+  }
+
   Future<void> setEnabled(String id, bool enabled) async {
     final r = await _db.getById(id);
     if (r == null) return;

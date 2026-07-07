@@ -65,6 +65,21 @@ Iterable<DateTime> _rawOccurrences(Reminder r, DateTime after) {
   return instances.map((d) => DateTime(d.year, d.month, d.day, d.hour, d.minute));
 }
 
+/// All notification fire times for one occurrence anchored at [occ]: the
+/// "before" lead, and — when nagging is on — the at-time ping plus up to
+/// [maxNags] repeats every nagMinutes. Sorted, de-duplicated. Nag off
+/// (nagMinutes == 0) yields exactly [occ - offsetMinutes] — today's single
+/// fire. Pure: no DB, no clock.
+List<DateTime> occurrenceFireTimes(Reminder r, DateTime occ, int maxNags) {
+  final before = occ.subtract(Duration(minutes: r.offsetMinutes));
+  if (r.nagMinutes <= 0) return [before];
+  final times = <DateTime>{before, occ};
+  for (var i = 1; i <= maxNags; i++) {
+    times.add(occ.add(Duration(minutes: r.nagMinutes * i)));
+  }
+  return times.toList()..sort();
+}
+
 /// The next time this reminder will actually fire, and whether that's a
 /// pending snooze rather than a regular occurrence. A snooze
 /// (`snoozedUntil` after [now]) wins if there's no occurrence or it lands

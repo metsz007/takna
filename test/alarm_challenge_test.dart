@@ -19,10 +19,14 @@ class _FakeRepo extends ReminderRepository {
   static final _db = AppDatabase();
   final String? _challenge;
   final calls = <({String id, int minutes})>[];
+  final dismissed = <String>[];
 
   @override
   Future<void> snooze(String id, int minutes) async =>
       calls.add((id: id, minutes: minutes));
+
+  @override
+  Future<void> dismiss(String id) async => dismissed.add(id);
 
   @override
   Future<Reminder?> getById(String id) async {
@@ -34,6 +38,7 @@ class _FakeRepo extends ReminderRepository {
       timeZone: 'UTC',
       offsetMinutes: 0,
       snoozeMinutes: 5,
+      nagMinutes: 0,
       isEnabled: true,
       isAlarm: true,
       challenge: _challenge,
@@ -125,7 +130,7 @@ void main() {
     await tester.tap(find.text('Check'));
     await tester.pump();
 
-    expect(f.scheduler.reconciles, 0); // never dismissed
+    expect(f.repo.dismissed, isEmpty); // never dismissed
     expect(find.byType(AlarmScreen), findsOneWidget); // still ringing
     expect(find.byKey(const Key('challengePrompt')), findsOneWidget);
   });
@@ -141,7 +146,7 @@ void main() {
     await tester.tap(find.text('Check'));
     await tester.pumpAndSettle();
 
-    expect(f.scheduler.reconciles, 1);
+    expect(f.repo.dismissed, ['rid']);
     expect(find.byType(AlarmScreen), findsNothing);
   });
 
@@ -153,7 +158,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(f.repo.calls, [(id: 'rid', minutes: 10)]);
-    expect(f.scheduler.reconciles, 0); // snooze path never dismisses
+    expect(f.repo.dismissed, isEmpty); // snooze path never dismisses
   });
 
   testWidgets('SAFETY: big Snooze button works without solving the challenge',
@@ -173,7 +178,7 @@ void main() {
     await tester.tap(find.text('Dismiss'));
     await tester.pumpAndSettle();
 
-    expect(f.scheduler.reconciles, 1);
+    expect(f.repo.dismissed, ['rid']);
     expect(find.byKey(const Key('challengePrompt')), findsNothing);
     expect(find.byType(AlarmScreen), findsNothing);
   });

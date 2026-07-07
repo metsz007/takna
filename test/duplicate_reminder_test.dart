@@ -46,6 +46,7 @@ void main() {
       rruleString: 'FREQ=MONTHLY',
       offsetMinutes: 15,
       snoozeMinutes: 30,
+      nagMinutes: 0,
       isEnabled: false, // paused source: the copy must still start enabled
       isAlarm: false,
       snoozedUntil: DateTime(2030, 6, 15, 9, 40),

@@ -14,6 +14,7 @@ Reminder _r({required String id, required bool isAlarm}) {
     rruleString: null,
     offsetMinutes: 0,
     snoozeMinutes: 10,
+    nagMinutes: 0,
     isEnabled: true,
     isAlarm: isAlarm,
     createdAt: now,

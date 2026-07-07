@@ -24,6 +24,9 @@ List<Reminder> decodeBackup(String source) {
   final rows = map['reminders'];
   if (rows is! List) throw const FormatException('Not a Takna backup');
   return [
-    for (final r in rows) Reminder.fromJson(r as Map<String, dynamic>),
+    // Backups from before schema 10 lack nagMinutes (non-nullable, default
+    // off) — inject the default so old exports still restore.
+    for (final r in rows)
+      Reminder.fromJson({'nagMinutes': 0, ...r as Map<String, dynamic>}),
   ];
 }

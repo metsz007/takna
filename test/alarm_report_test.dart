@@ -21,6 +21,7 @@ Reminder _r({
       rruleString: rrule,
       offsetMinutes: offsetMinutes,
       snoozeMinutes: 10,
+      nagMinutes: 0,
       isEnabled: isEnabled,
       isAlarm: isAlarm,
       snoozedUntil: null,

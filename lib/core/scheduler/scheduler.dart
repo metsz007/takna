@@ -24,6 +24,10 @@ class Scheduler {
 
   static const _windowTotal = 60; // stay under iOS's 64 pending cap
   static const _perReminder = 10;
+  // ponytail: fixed nag ceiling for everyone — no per-reminder repeat count.
+  // A never-dismissed nagger stops after 8 re-rings instead of spamming the
+  // shade forever; make it per-reminder only if 3-nag vs 20-nag users appear.
+  static const _maxNags = 8;
 
   // Serialize reconciles: cancelAll + the schedule loop must not interleave
   // with another run's, or the OS queue ends up half-rebuilt.
@@ -56,10 +60,16 @@ class Scheduler {
     // disabled on the reconcile after the snooze passes. Deliberate: a one-time
     // reminder that fired while the phone was off is disabled on next reconcile
     // — the time has passed either way.
-    final fired = reminders.where((r) =>
-        r.rruleString == null &&
-        r.startDateTime.subtract(Duration(minutes: r.offsetMinutes)).isBefore(now) &&
-        (r.snoozedUntil == null || r.snoozedUntil!.isBefore(now)));
+    // A nagging one-time is only "fired" once its *last* nag has passed (it
+    // must keep re-ringing until then) — or immediately once dismissed.
+    final fired = reminders.where((r) {
+      if (r.rruleString != null) return false;
+      final fires = occurrenceFireTimes(r, r.startDateTime, _maxNags);
+      final dismissed = r.dismissedUntil != null &&
+          !r.startDateTime.isAfter(r.dismissedUntil!);
+      return (fires.last.isBefore(now) || dismissed) &&
+          (r.snoozedUntil == null || r.snoozedUntil!.isBefore(now));
+    });
     for (final r in fired) {
       await _db.setEnabled(r.id, false);
     }
@@ -72,9 +82,25 @@ class Scheduler {
       if (snooze != null && snooze.isAfter(floor)) {
         occurrences.add((r: r, fireAt: snooze));
       }
-      for (final occ in nextOccurrences(r, floor, _perReminder)) {
-        final fireAt = occ.subtract(Duration(minutes: r.offsetMinutes));
-        if (fireAt.isAfter(floor)) occurrences.add((r: r, fireAt: fireAt));
+      // Nagging: each occurrence expands into a fire *set* (before, at-time,
+      // nags). nextOccurrences is strictly-after, so look back one full nag
+      // span to keep an in-flight occurrence (anchor just past, nags still
+      // ahead) in the window — otherwise any reconcile mid-nag would silently
+      // kill the remaining re-rings. A dismissed occurrence (anchor ≤
+      // dismissedUntil) emits nothing; past fires are filtered per-time below.
+      final from = r.nagMinutes > 0
+          ? floor.subtract(Duration(minutes: r.nagMinutes * _maxNags))
+          : floor;
+      final dismissed = r.dismissedUntil;
+      var count = 0;
+      for (final occ in nextOccurrences(r, from, _perReminder)) {
+        if (dismissed != null && !occ.isAfter(dismissed)) continue;
+        for (final fireAt in occurrenceFireTimes(r, occ, _maxNags)) {
+          if (fireAt.isAfter(floor) && count < _perReminder) {
+            occurrences.add((r: r, fireAt: fireAt));
+            count++;
+          }
+        }
       }
     }
     occurrences.sort((a, b) => a.fireAt.compareTo(b.fireAt));

@@ -64,6 +64,8 @@ Reminder _r({
   DateTime? snoozedUntil,
   int offset = 0,
   String? soundKey,
+  int nag = 0,
+  DateTime? dismissedUntil,
 }) =>
     Reminder(
       id: id,
@@ -74,6 +76,8 @@ Reminder _r({
       rruleString: rrule,
       offsetMinutes: offset,
       snoozeMinutes: 10,
+      nagMinutes: nag,
+      dismissedUntil: dismissedUntil,
       isEnabled: true,
       isAlarm: true,
       snoozedUntil: snoozedUntil,
@@ -209,6 +213,66 @@ void main() {
 
     expect(notifications.scheduled, contains('dflt'));
     expect(notifications.soundKeys['dflt'], isNull);
+  });
+
+  test('nagging occurrence schedules multiple fires vs single without', () async {
+    // One-time (recurring reminders both saturate the per-reminder slot cap).
+    await db.upsert(_r(id: 'plain', start: future));
+    await db.upsert(_r(id: 'naggy', start: future, nag: 5));
+    await scheduler.reconcile();
+
+    final plain = notifications.scheduled.where((id) => id == 'plain').length;
+    final naggy = notifications.scheduled.where((id) => id == 'naggy').length;
+    expect(naggy, greaterThan(plain));
+  });
+
+  test('dismiss stops the current occurrence\'s nags, keeps the next set', () async {
+    // Daily nagger whose today-occurrence just fired: anchor 2 min ago, nags
+    // every 5 min still ahead. Minute-aligned — RRULE expansion truncates to
+    // the minute, so a sub-minute anchor would misalign the next occurrence.
+    final anchor = DateTime(now.year, now.month, now.day, now.hour, now.minute)
+        .subtract(const Duration(minutes: 2));
+    await db.upsert(_r(id: 'n', rrule: 'FREQ=DAILY', start: anchor, nag: 5));
+    await scheduler.reconcile();
+    // In-flight nags of the current occurrence survive a plain reconcile.
+    final nextAnchor = anchor.add(const Duration(days: 1));
+    expect(notifications.whens.where((w) => w.isBefore(nextAnchor)), isNotEmpty);
+
+    await db.setDismissedUntil('n', now);
+    notifications.whens.clear();
+    notifications.scheduled.clear();
+    await scheduler.reconcile();
+
+    // Zero fires before the next anchor (current set gone)…
+    expect(notifications.whens.where((w) => w.isBefore(nextAnchor)), isEmpty);
+    // …but the next occurrence's set is still queued.
+    expect(notifications.scheduled, contains('n'));
+  });
+
+  test('dismissed nagging one-time is disabled at once', () async {
+    final anchor = now.subtract(const Duration(minutes: 2));
+    await db.upsert(_r(
+        id: 'od', start: anchor, nag: 5, dismissedUntil: now));
+    await scheduler.reconcile();
+
+    expect((await db.getById('od'))!.isEnabled, isFalse);
+    expect(notifications.scheduled, isNot(contains('od')));
+  });
+
+  test('non-dismissed nagging one-time stays enabled until its last nag', () async {
+    // First fire passed, nags still pending → must NOT be disabled mid-nag.
+    final anchor = now.subtract(const Duration(minutes: 2));
+    await db.upsert(_r(id: 'on', start: anchor, nag: 5));
+    await scheduler.reconcile();
+
+    expect((await db.getById('on'))!.isEnabled, isTrue);
+    expect(notifications.scheduled, contains('on'));
+
+    // …and once every nag has passed, it is disabled like any fired one-time.
+    final ancient = now.subtract(const Duration(hours: 2));
+    await db.upsert(_r(id: 'done', start: ancient, nag: 5));
+    await scheduler.reconcile();
+    expect((await db.getById('done'))!.isEnabled, isFalse);
   });
 
   test('concurrent reconcile() calls are serialized (no interleave)', () async {

@@ -45,6 +45,7 @@ Reminder _r({
     rruleString: rrule,
     offsetMinutes: 0,
     snoozeMinutes: 10,
+    nagMinutes: 0,
     isEnabled: true,
     isAlarm: true,
     snoozedUntil: snoozedUntil,
@@ -67,6 +68,18 @@ void main() {
     ];
 
     expect(decodeBackup(encodeBackup(rows)), rows);
+  });
+
+  test('pre-schema-10 backup (no nagMinutes) restores with nag off', () {
+    final old = _r(id: 'a').toJson()
+      ..remove('nagMinutes')
+      ..remove('dismissedUntil');
+    final source = jsonEncode({
+      'takna': backupVersion,
+      'reminders': [old],
+    });
+
+    expect(decodeBackup(source).single.nagMinutes, 0);
   });
 
   test('garbage and wrong envelopes throw FormatException', () {

@@ -41,6 +41,7 @@ Reminder _r({
       rruleString: null,
       offsetMinutes: 0,
       snoozeMinutes: 10,
+      nagMinutes: 0,
       isEnabled: true,
       isAlarm: true,
       snoozedUntil: snoozedUntil,
