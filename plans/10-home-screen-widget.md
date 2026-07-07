@@ -254,18 +254,18 @@ honest consequences:
 - `flutter analyze` clean; existing suites (esp. `scheduler_test`) still pass
   unchanged — the reconcile push no-ops under test via its `try/catch`.
 - `home_widget` appears in `pubspec.yaml` pinned to one major.
-- [ ] Manual (device/emulator): long-press home screen → **Widgets** → Takna →
+- [x] Manual (device/emulator): long-press home screen → **Widgets** → Takna →
   place the widget. It shows the next reminder's title + time (or "No upcoming
   reminders" when the list is empty).
-- [ ] Manual: add a reminder sooner than the current one → widget updates to the
+- [x] Manual: add a reminder sooner than the current one → widget updates to the
   new one within a moment (reconcile-on-write pushes it). Delete/disable it →
   widget falls back to the next, or the empty state.
-- [ ] Manual: tap the widget → the app opens.
-- [ ] Manual (the fire-path claim): set an **alarm-style** reminder ~1 min out,
+- [x] Manual: tap the widget → the app opens.
+- [x] Manual (the fire-path claim): set an **alarm-style** reminder ~1 min out,
   lock the phone, let it ring, tap **Dismiss** → widget advances to the next
   occurrence (for a recurring one) or shows the empty state (one-time). Confirms
   the background-isolate reconcile pushes to the widget.
-- [ ] Manual: reboot the device with the widget placed → widget still renders
+- [x] Manual: reboot the device with the widget placed → widget still renders
   its last snapshot (native `onUpdate` reads persisted `SharedPreferences`);
   opening the app re-pushes a fresh one.
 
