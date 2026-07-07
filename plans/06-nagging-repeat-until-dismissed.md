@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: done
 verified-by:
   - test/nagging_test.dart
   - test/scheduler_test.dart
@@ -251,11 +251,11 @@ per-reminder only if someone needs a 3-nag vs 20-nag distinction.
     pass unchanged.
 - `flutter analyze` clean; all existing suites pass (regenerated
   `database.g.dart` compiles; `database_default_test` still green).
-- [ ] Manual (device/emulator): create a reminder ~2 min out, offset "5 min
+- [x] Manual (device/emulator): create a reminder ~2 min out, offset "5 min
   before", nag "Every 5 min", alarm style. Confirm: a heads-up ~5 min before
   (if time allows), the alarm at the time, then a re-ring ~5 min later. Dismiss
   it → no further nags arrive; the reminder still shows its next occurrence.
-- [ ] Manual (dead-app / shade dismiss): let a nagging alarm fire with the app
+- [x] Manual (dead-app / shade dismiss): let a nagging alarm fire with the app
   swiped away, dismiss from the notification shade, force-stop the app, wait
   past the next nag interval → **no** further nag fires (proves
   `dismissedUntil` written in the background isolate survives to the next
